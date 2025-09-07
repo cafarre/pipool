@@ -28,17 +28,26 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Cache Maven Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
 
       - name: Setup GraalVM
         uses: graalvm/setup-graalvm@v1
         with:
           java-version: '21'
           distribution: 'graalvm-community'
-          components: 'native-image'
 
       - name: Build native (AOT)
-        run: mvn -Pnative -DskipTests -Dspring.aot.enabled=true -B package
+        #run: mvn -Pnative -DskipTests -Dspring.aot.enabled=true -B package
+        run: mvn -Pnative -DskipTests -Dspring.aot.enabled=true -B native:compile
 
       - name: Upload native artifact
         uses: actions/upload-artifact@v4
