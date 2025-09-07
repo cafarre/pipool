@@ -23,26 +23,28 @@ on:
         type: boolean
 
 jobs:
-  build-arm64:
-    runs-on: ubuntu-24.04-arm   # runner ARM64
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v4
+  build-arm64:
+    runs-on: ubuntu-24.04-arm   # runner ARM64
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-java@v4
-        with:
-          distribution: graalvm
-          java-version: '21'
+      - name: Setup GraalVM
+        uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '21'
+          distribution: 'graalvm-community'
+          components: 'native-image' # Instala native-image directamente
 
-      - name: Install native-image
-        run: gu install native-image
-
-      - name: Build native (AOT)
-        run: mvn -Pnative -DskipTests -Dspring.aot.enabled=true -B package
-        
-      - uses: actions/upload-artifact@v4
-        with:
-          name: pipool-linux-aarch64
-          path: |
-            target/pipool
+      - name: Build native (AOT)
+        run: mvn -Pnative -DskipTests -Dspring.aot.enabled=true -B package
+        # El -DskipTests es redundante si tienes un input `skip_tests`
+        # puedes usar una condición para hacerlo dinámico.
+        # Por ejemplo: run: mvn -Pnative -B package ${{ github.event.inputs.skip_tests == 'true' && '-DskipTests' || '' }}
+          
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pipool-linux-aarch64
+          path: |
+            target/pipool
