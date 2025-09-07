@@ -1,0 +1,188 @@
+spring:
+  main:
+    allow-bean-definition-overriding: true
+    #allow-circular-references: true
+  security:
+    user:
+      name: m4ster
+      password: Aq1ll1nant
+
+# Configuración para compilación nativa
+  aot:
+    enabled: true
+  native:
+    remove-unused-autoconfig: true
+    remove-yaml-support: false
+
+# Optimizaciones para ARM64
+graalvm:
+  native:
+    resources:
+     includes: "**/*.properties,**/*.yml,**/*.yaml"
+
+server:
+  port: 8045
+  servlet: 
+    context-path: /pipool
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain
+  ssl:
+    enabled: ${SSL_ENABLED:false}  # evita que falle en build
+    #key-alias: fdvbanc-ssl-san-public
+    key-store: ${SSL_KEYSTORE_PATH:}
+    key-store-password: ${SSL_KEYSTORE_PASSWORD:}
+    key-store-type: ${SSL_KEYSTORE_TYPE:PKCS12}
+    
+socketio:
+  host: localhost
+  port: 8055
+
+pipool:
+  security:
+    #usar este comando para generar una: openssl rand -base64 64
+    secret-jwt-key: ${JWT_SECRET:}                # <- viene de env
+    jwt-seconds-expiration: 3600
+  mqtt:
+    urlbroker: 10.0.1.20:1883
+    device-name: Pipool
+    topics-prefix:
+      shelly: shellies
+      ha: homeassistant
+  scheduler:
+    reles:
+      active: true
+      initialDelay: 10
+      periodSeconds: 5
+    sondes:
+      active: true
+      initialDelay: 0
+      periodSeconds: 600
+    persist:
+      active: true
+      initialDelay: 20
+      periodSeconds: 600
+    mqtt:
+      active: true
+      initialDelay: 30
+      periodSeconds: 60
+    haonline:
+      active: true
+      initialDelay: 30
+      periodSeconds: 300
+      max-minutes-offline: 60
+    backup:
+      active: true
+      hora: 23
+      minut: 59     
+  reles:
+    file: conf/reles.json
+    idReleBomba: ReleBomba
+    numDiesHistoria: 4
+  sondes:
+    file: conf/sondes.json
+    atlas:
+      modeTest: false
+        
+logging:
+  file:
+    name: logs/pipool.log
+  level:
+    root: ERROR
+    org.springframework.web: INFO
+    es.fdvcode.pipool: INFO
+  pattern:
+    console: '[%-5level] %d{yyyy-MM-dd HH:mm:ss} - %msg%n'
+    file: '[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n'    
+logging.file.name.max-history: 30
+   
+---
+
+spring:
+  config:
+    activate:
+      on-profile: Local
+pipool:
+  mqtt:
+    device-name: PipoolTest
+    topics-prefix:
+      ha: hatest
+  scheduler:
+    reles:
+      active: true
+      initialDelay: 10
+      periodSeconds: 5
+    sondes:
+      active: true
+      initialDelay: 0
+      periodSeconds: 600
+    persist:
+      active: true
+      initialDelay: 20
+      periodSeconds: 600       
+    backup:
+      active: false
+      hora: 23
+      minut: 59
+    mqtt:
+      active: true
+      initialDelay: 1
+      periodSeconds: 5
+    haonline:
+      active: true
+      initialDelay: 30
+      periodSeconds: 30
+      max-minutes-offline: 1
+  sondes:
+    atlas:
+      modeTest: true
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: Beta
+pipool:
+  mqtt:
+    device-name: PipoolTest
+    topics-prefix:
+      ha: hatest
+  scheduler:
+    reles:
+      active: true
+      initialDelay: 10
+      periodSeconds: 60
+    sondes:
+      active: true
+      initialDelay: 0
+      periodSeconds: 600
+    persist:
+      active: true
+      initialDelay: 20
+      periodSeconds: 600       
+    backup:
+      active: false
+      hora: 23
+      minut: 59
+    mqtt:
+      active: true
+      initialDelay: 1
+      periodSeconds: 60
+    haonline:
+      active: true
+      initialDelay: 30
+      periodSeconds: 30
+      max-minutes-offline: 1
+  sondes:
+    atlas:
+      modeTest: true
+  
+#logging:
+#  level:
+#    org:
+#      springframework:
+#        root: INFO
+#        web: INFO
+#        security: DEBUG
+           

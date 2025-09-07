@@ -1,0 +1,252 @@
+{"properties": [
+  {
+    "name": "pipool.scheduler.file",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.scheduler.file'"
+  },
+  {
+    "name": "pipool.reles.file",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.reles.file'"
+  },
+  {
+    "name": "pipool.sondes.file",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.sondes.file'"
+  },
+  {
+    "name": "pipool.sondes.atlas.device.max_intents",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.sondes.atlas.device.max_intents'"
+  },
+  {
+    "name": "pipool.sondes.atlas.device.delay_milis_long",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.sondes.atlas.device.delay_milis_long'"
+  },
+  {
+    "name": "pipool.sondes.atlas.device.delay_milis_short",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.sondes.atlas.device.delay_milis_short'"
+  },
+  {
+    "name": "pipool.sondes.atlas.mode-test",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.sondes.atlas.mode-test'"
+  },
+  {
+    "name": "pipool.scheduler.reles.active",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.scheduler.reles.active'"
+  },
+  {
+    "name": "pipool.scheduler.reles.initial-delay",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.scheduler.reles.initial-delay'"
+  },
+  {
+    "name": "pipool.scheduler.reles.period-seconds",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.scheduler.reles.period-seconds'"
+  },
+  {
+    "name": "pipool.scheduler.sondes.active",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.scheduler.sondes.active'"
+  },
+  {
+    "name": "pipool.scheduler.sondes.initial-delay",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.scheduler.sondes.initial-delay'"
+  },
+  {
+    "name": "pipool.scheduler.sondes.period-seconds",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.scheduler.sondes.period-seconds'"
+  },
+  {
+    "name": "pipool.scheduler.persist.active",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.scheduler.persist.active'"
+  },
+  {
+    "name": "pipool.scheduler.persist.initial-delay",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.scheduler.persist.initial-delay'"
+  },
+  {
+    "name": "pipool.scheduler.persist.period-seconds",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.scheduler.persist.period-seconds'"
+  },
+  {
+    "name": "pipool.scheduler.backup.active",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.scheduler.backup.active'"
+  },
+  {
+    "name": "pipool.scheduler.backup.hora",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.scheduler.backup.hora'"
+  },
+  {
+    "name": "pipool.scheduler.backup.minut",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.scheduler.backup.minut'"
+  },
+  {
+    "name": "pipool.reles.id-rele-bomba",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.reles.id-rele-bomba'"
+  },
+  {
+    "name": "pipool.reles.num-dies-historia",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.reles.num-dies-historia'"
+  },
+  {
+    "name": "pipool.sondes.num-dies-historia",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.sondes.num-dies-historia'"
+  },
+  {
+    "name": "pipool.security.secret-jwt-key",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.security.secret-jwt-key'"
+  },
+  {
+    "name": "pipool.security.user.name",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.security.user.name'"
+  },
+  {
+    "name": "pipool.security.user.password",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.security.user.password'"
+  },
+  {
+    "name": "pipool.security.jwt-seconds-expiration",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.security.jwt-seconds-expiration'"
+  },
+  {
+    "name": "pipool.mqtt.urlbroker",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.mqtt.urlbroker'"
+  },
+  {
+    "name": "pipool.mqtt.device-name",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.mqtt.device-name'"
+  },
+  {
+    "name": "pipool.mqtt.topics-prefix.shelly",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.mqtt.topics-prefix.shelly'"
+  },
+  {
+    "name": "pipool.mqtt.topics-prefix.ha",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.mqtt.topics-prefix.ha'"
+  },
+  {
+    "name": "telegram.bot.name",
+    "type": "java.lang.String",
+    "description": "A description for 'telegram.bot.name'"
+  },
+  {
+    "name": "telegram.bot.default-message",
+    "type": "java.lang.String",
+    "description": "A description for 'telegram.bot.default-message'"
+  },
+  {
+    "name": "telegram.bot.inici",
+    "type": "java.lang.String",
+    "description": "A description for 'telegram.bot.inici'"
+  },
+  {
+    "name": "telegram.bot.ajuda",
+    "type": "java.lang.String",
+    "description": "A description for 'telegram.bot.ajuda'"
+  },
+  {
+    "name": "telegram.bot.allowed-users",
+    "type": "java.lang.String",
+    "description": "A description for 'telegram.bot.allowed-users'"
+  },
+  {
+    "name": "telegram.api.token",
+    "type": "java.lang.String",
+    "description": "A description for 'telegram.api.token'"
+  },
+  {
+    "name": "telegram.api.url",
+    "type": "java.lang.String",
+    "description": "A description for 'telegram.api.url'"
+  },
+  {
+    "name": "spring.aot.enabled",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.aot.enabled'"
+  },
+  {
+    "name": "spring.native.remove-unused-autoconfig",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.native.remove-unused-autoconfig'"
+  },
+  {
+    "name": "spring.native.remove-yaml-support",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.native.remove-yaml-support'"
+  },
+  {
+    "name": "graalvm.native.resources.includes",
+    "type": "java.lang.String",
+    "description": "A description for 'graalvm.native.resources.includes'"
+  },
+  {
+    "name": "socketio.host",
+    "type": "java.lang.String",
+    "description": "A description for 'socketio.host'"
+  },
+  {
+    "name": "socketio.port",
+    "type": "java.lang.String",
+    "description": "A description for 'socketio.port'"
+  },
+  {
+    "name": "pipool.scheduler.mqtt.active",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.scheduler.mqtt.active'"
+  },
+  {
+    "name": "pipool.scheduler.mqtt.initialDelay",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.scheduler.mqtt.initialDelay'"
+  },
+  {
+    "name": "pipool.scheduler.mqtt.periodSeconds",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.scheduler.mqtt.periodSeconds'"
+  },
+  {
+    "name": "pipool.scheduler.haonline.active",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.scheduler.haonline.active'"
+  },
+  {
+    "name": "pipool.scheduler.haonline.initialDelay",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.scheduler.haonline.initialDelay'"
+  },
+  {
+    "name": "pipool.scheduler.haonline.periodSeconds",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.scheduler.haonline.periodSeconds'"
+  },
+  {
+    "name": "pipool.scheduler.haonline.max-minutes-offline",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.scheduler.haonline.max-minutes-offline'"
+  }
+]}

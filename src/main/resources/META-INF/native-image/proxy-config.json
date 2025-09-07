@@ -1,0 +1,35 @@
+[
+  {
+    "interfaces":["es.fdvcode.pipool.mqtt.MqttGateway","org.springframework.aop.SpringProxy","org.springframework.aop.framework.Advised","org.springframework.core.DecoratingProxy"]
+  },
+  {
+    "interfaces":["java.lang.reflect.GenericArrayType","org.springframework.core.SerializableTypeWrapper$SerializableTypeProxy","java.io.Serializable"]
+  },
+  {
+    "interfaces":["java.lang.reflect.ParameterizedType","org.springframework.core.SerializableTypeWrapper$SerializableTypeProxy","java.io.Serializable"]
+  },
+  {
+    "interfaces":["java.lang.reflect.TypeVariable","org.springframework.core.SerializableTypeWrapper$SerializableTypeProxy","java.io.Serializable"]
+  },
+  {
+    "interfaces":["java.lang.reflect.WildcardType","org.springframework.core.SerializableTypeWrapper$SerializableTypeProxy","java.io.Serializable"]
+  },
+  {
+    "interfaces":["org.springframework.boot.actuate.endpoint.annotation.EndpointExtension"]
+  },
+  {
+    "interfaces":["org.springframework.boot.context.properties.ConfigurationProperties"]
+  },
+  {
+    "interfaces":["org.springframework.integration.annotation.MessagingGateway"]
+  },
+  {
+    "interfaces":["org.springframework.messaging.handler.annotation.Header"]
+  },
+  {
+    "interfaces":["org.springframework.web.bind.annotation.RequestMapping"]
+  },
+  {
+    "interfaces":["org.springframework.web.bind.annotation.RequestParam"]
+  }
+]
