@@ -3,3 +3,10 @@
 /data/
 /target-graalvm/
 *.exe
+src/main/resources/application-*.local.properties
+*.p12
+*.pem
+*.key
+*.crt
+*.pfx
+
