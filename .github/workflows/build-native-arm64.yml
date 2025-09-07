@@ -23,22 +23,22 @@ on:
         type: boolean
 
 jobs:
-  build-arm64:
-    runs-on: ubuntu-24.04-arm   # runner ARM64
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v4
+  build-arm64:
+    runs-on: ubuntu-24.04-arm      # runner ARM64
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
 
-      - name: Setup GraalVM
-        uses: graalvm/setup-graalvm@v1
-        with:
-          java-version: '21'
-          distribution: 'graalvm-community'
-          components: 'native-image'
+      - name: Setup GraalVM
+        uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '21'
+          distribution: 'graalvm-community'
+          components: 'native-image'
 
-      - name: Build native (AOT)
-        run: mvn -Pnative -DskipTests -Dspring.aot.enabled=true -B package
+      - name: Build native (AOT)
+        run: mvn -Pnative -DskipTests -Dspring.aot.enabled=true -B package
 
       - name: Upload native artifact
         uses: actions/upload-artifact@v4
