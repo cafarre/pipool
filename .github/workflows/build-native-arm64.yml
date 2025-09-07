@@ -35,13 +35,10 @@ jobs:
         with:
           java-version: '21'
           distribution: 'graalvm-community'
-          components: 'native-image' # Instala native-image directamente
+          components: 'native-image'
 
       - name: Build native (AOT)
         run: mvn -Pnative -DskipTests -Dspring.aot.enabled=true -B package
-        # El -DskipTests es redundante si tienes un input `skip_tests`
-        # puedes usar una condición para hacerlo dinámico.
-        # Por ejemplo: run: mvn -Pnative -B package ${{ github.event.inputs.skip_tests == 'true' && '-DskipTests' || '' }}
           
       - uses: actions/upload-artifact@v4
         with:
