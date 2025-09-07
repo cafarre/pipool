@@ -39,7 +39,14 @@ public class MqttConfiguration {
 	
 	@Value("${pipool.mqtt.topics-prefix.ha}")
 	private String topicPrefixHA;
-	    
+
+	@Value("${pipool.mqtt.user}")
+	private String mqttUser;
+
+	@Value("${pipool.mqtt.password}")
+	private String mqttPassword;
+
+	
     @Bean
     MessageChannel mqttInputChannel() {
         return new DirectChannel();
@@ -108,8 +115,8 @@ public class MqttConfiguration {
         MqttConnectOptions options = new MqttConnectOptions();
         
         //TODO posar en properties
-        options.setUserName("domo");
-        options.setPassword("Fazerfz1".toCharArray());
+        options.setUserName(mqttUser);
+        options.setPassword(mqttPassword.toCharArray());
         options.setServerURIs(new String[] {"tcp://" + urlMqttBroker });
         factory.setConnectionOptions(options);
         

@@ -4,8 +4,8 @@ spring:
     #allow-circular-references: true
   security:
     user:
-      name: m4ster
-      password: Aq1ll1nant
+      name: ${SEC_USER:}
+      password: ${SEC_PASSWORD:}
 
 # Configuración para compilación nativa
   aot:
@@ -46,6 +46,8 @@ pipool:
   mqtt:
     urlbroker: 10.0.1.20:1883
     device-name: Pipool
+    user: ${MQTT_USER:}
+    password: ${MQTT_PASSWORD:}
     topics-prefix:
       shelly: shellies
       ha: homeassistant
