@@ -40,8 +40,8 @@ jobs:
       - name: Build native (AOT)
         run: mvn -Pnative -DskipTests -Dspring.aot.enabled=true -B package
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: pipool-linux-aarch64
-          path: |
-            target/pipool
+      - name: Upload native artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipool-linux-aarch64
+          path: target/pipool
