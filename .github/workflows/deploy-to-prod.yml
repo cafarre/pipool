@@ -2,12 +2,12 @@
 name: Deploy to Production
 
 on:
-  workflow_dispatch:
-    inputs:
-      artifact_name:
-        description: 'Artifact name to deploy'
-        required: true
-        default: 'pipool-linux-aarch64'
+  # workflow_dispatch:
+  #   inputs:
+  #     artifact_name:
+  #       description: 'Artifact name to deploy'
+  #       required: true
+  #       default: 'pipool-linux-aarch64'
 
 jobs:
   deploy:
