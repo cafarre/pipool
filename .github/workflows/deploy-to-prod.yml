@@ -1,7 +1,7 @@
 # .github/workflows/deploy-to-prod.yml
 name: Deploy to Production
 
-on:
+#on:
   # workflow_dispatch:
   #   inputs:
   #     artifact_name:
