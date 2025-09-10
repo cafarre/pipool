@@ -34,9 +34,9 @@ server:
     key-store-password: ${SSL_KEYSTORE_PASSWORD:}
     key-store-type: ${SSL_KEYSTORE_TYPE:PKCS12}
     
-socketio:
-  host: localhost
-  port: 8055
+#socketio:
+#  host: localhost
+#  port: 8055
 
 pipool:
   security:
