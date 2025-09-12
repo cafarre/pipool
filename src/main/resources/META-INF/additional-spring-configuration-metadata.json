@@ -248,5 +248,10 @@
     "name": "pipool.scheduler.haonline.max-minutes-offline",
     "type": "java.lang.String",
     "description": "A description for 'pipool.scheduler.haonline.max-minutes-offline'"
+  },
+  {
+    "name": "pipool.app.version",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.app.version'"
   }
 ]}

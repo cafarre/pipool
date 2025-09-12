@@ -3,8 +3,10 @@ spring:
 #  profiles:
 #    active: default-production
   main:
+    banner-mode: log
     allow-bean-definition-overriding: true
     #allow-circular-references: true
+    
   security:
     user:
       name: ${SEC_USER:}
@@ -42,6 +44,8 @@ server:
 #  port: 8055
 
 pipool:
+  app:
+    version: "@project.version@"
   security:
     #usar este comando para generar una: openssl rand -base64 64
     secret-jwt-key: ${JWT_SECRET:}                # <- viene de env

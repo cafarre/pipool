@@ -4,7 +4,7 @@
 
   <groupId>es.fdvcode</groupId>
   <artifactId>pipool</artifactId>
-  <version>4.0.3</version>
+  <version>4.0.4</version>
   <packaging>jar</packaging>
   <name>pipool</name>
   
@@ -89,13 +89,15 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-actuator</artifactId>
     </dependency>
-    
+
+<!-- NO ES POT ACTIVAR PER INCOMPATIBILITAT AMB GRAALVM    
    	<dependency>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-devtools</artifactId>
         <scope>runtime</scope>
         <optional>true</optional>		
 	</dependency>
+-->
 
 	<dependency>
 	  <groupId>org.projectlombok</groupId>
@@ -134,6 +136,12 @@
 
   
 	<build>
+	    <resources>
+	        <resource>
+	            <directory>src/main/resources</directory>
+	            <filtering>true</filtering>
+	        </resource>
+	    </resources>		
 		<plugins>
 			<plugin>
 	            <groupId>org.springframework.boot</groupId>
