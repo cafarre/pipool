@@ -59,7 +59,7 @@ public final class PiPoolScheduledTaskReboot implements PiPoolSchedulerTask {
 		}
 		
 		//REBOOT rPI
-		String[] cmd = {"sudo reboot"};
+		String[] cmd = {"reboot"};
 		try {
 			
 			log.info("PREPARAT per Executar SystemCommand [{}] -> {}", cmd[0]);

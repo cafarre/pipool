@@ -84,7 +84,7 @@ public class RpiStateRestController {
 			persister.run();
 			
 			//Renici de la Pi
-			p = Runtime.getRuntime().exec(new String[]{"sudo reboot"});
+			p = Runtime.getRuntime().exec(new String[]{"reboot"});
 
 			log.info("Reboot OK rPi. Process: {}", objJsonPrinter.print(p));
 			return new RestResponse<>(true, HttpStatus.OK);
