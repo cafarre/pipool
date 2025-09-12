@@ -134,7 +134,10 @@ public class AppRestController {
 			persister.run();
 			
 			//Pull & Push changes to GitHub
-			sysCmd.runScript("./pushchanges.sh");
+			String script = "./pushchanges.sh";
+			String strOut = sysCmd.runScript(script);
+			log.info("RESULTAT Execució SystemCommand [{}] -> {}", script, strOut);
+
 			return new RestResponse<>(true, HttpStatus.OK);
 		} 
 		catch (IOException | InterruptedException e) {
@@ -153,7 +156,9 @@ public class AppRestController {
 		log.info("REST - Pull changes from GitHub.");
 		try {
 			//Pull changes from GitHub
-			sysCmd.runScript("./pullchanges.sh");
+			String script = "./pullchanges.sh";
+			String strOut = sysCmd.runScript(script);
+			log.info("RESULTAT Execució SystemCommand [{}] -> {}", script, strOut);			
 			return new RestResponse<>(true, HttpStatus.OK);
 		} 
 		catch (IOException | InterruptedException e) {
