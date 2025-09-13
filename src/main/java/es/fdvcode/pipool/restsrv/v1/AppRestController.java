@@ -166,7 +166,7 @@ public class AppRestController {
 		log.info("REST - Pull changes from GitHub.");
 		try {
 			//Pull changes from GitHub
-			String script = script_pushchanges;
+			String script = script_pullchanges;
 			SystemResult sr = sysCmd.runScript(script);
 			log.info("RESULTAT Execució SystemCommand [{}] -> exitValue: {} Salida: {}.", script, sr.getExitValue(), sr.getOut());			
 			return new RestResponse<>(true, HttpStatus.OK);

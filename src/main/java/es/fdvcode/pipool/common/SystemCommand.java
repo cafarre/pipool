@@ -1,6 +1,7 @@
 package es.fdvcode.pipool.common;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
@@ -30,7 +31,7 @@ public class SystemCommand {
 	
 	public SystemResult runScript(String script) throws IOException, InterruptedException {
 	    ProcessBuilder processBuilder = new ProcessBuilder(script); //script="./nameOfScript.sh"
-	    processBuilder.inheritIO();
+	    processBuilder.directory(new File("/home/pi/pipool"));
 	    processBuilder.redirectErrorStream(true); // Fusiona stdout y stderr
 	    Process process = processBuilder.start();
 	    

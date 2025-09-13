@@ -12,7 +12,6 @@ spring:
   lifecycle:
     timeout-per-shutdown-phase: 10s
 
-
 # Configuración para compilación nativa
   aot:
     enabled: true
@@ -53,7 +52,7 @@ pipool:
     restart: /home/pi/pipool/restart.sh
   security:
     #usar este comando para generar una: openssl rand -base64 64
-    secret-jwt-key: ${JWT_SECRET:}                # <- viene de env
+    secret-jwt-key: ${JWT_SECRET:}
     jwt-seconds-expiration: 3600
   mqtt:
     urlbroker: 10.0.1.20:1883
