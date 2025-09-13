@@ -54,7 +54,7 @@ public class MqttConfiguration {
         return new DirectChannel();
     }
     
-    @Bean
+    @Bean(destroyMethod = "stop")
     MessageProducer inbound(MqttPahoClientFactory factory) {
     	
     	//TODO!! Nomes acceptar els topics que m'interessen. Ara ho estem rebent TOT!!!???!!!
@@ -135,7 +135,7 @@ public class MqttConfiguration {
                 .build();
     }
 
-    @Bean
+    @Bean(destroyMethod = "stop")
     @ServiceActivator(inputChannel = "mqttOutboundChannel", adviceChain = "retryAdvice")
     MessageHandler mqttOutbound(MqttPahoClientFactory mqttClientFactory) {
         MqttPahoMessageHandler messageHandler = new MqttPahoMessageHandler(MQTT_CLIENTID_PUB, mqttClientFactory);

@@ -62,7 +62,7 @@ public final class PiPoolScheduledTaskReboot implements PiPoolSchedulerTask {
 		String[] cmd = {"reboot"};
 		try {
 			
-			log.info("PREPARAT per Executar SystemCommand [{}] -> {}", cmd[0]);
+			log.info("PREPARAT per Executar SystemCommand [{}]", cmd[0]);
 			//Renici de la Pi
 			Process p = Runtime.getRuntime().exec(cmd);
 

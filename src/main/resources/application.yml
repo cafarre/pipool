@@ -5,12 +5,13 @@ spring:
   main:
     banner-mode: log
     allow-bean-definition-overriding: true
-    #allow-circular-references: true
-    
   security:
     user:
       name: ${SEC_USER:}
       password: ${SEC_PASSWORD:}
+  lifecycle:
+    timeout-per-shutdown-phase: 10s
+
 
 # Configuración para compilación nativa
   aot:
