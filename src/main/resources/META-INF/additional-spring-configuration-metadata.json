@@ -253,5 +253,30 @@
     "name": "pipool.app.version",
     "type": "java.lang.String",
     "description": "A description for 'pipool.app.version'"
+  },
+  {
+    "name": "pipool.scripts.pushchanges",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.scripts.pushchanges'"
+  },
+  {
+    "name": "pipool.scripts.pullchanges",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.scripts.pullchanges'"
+  },
+  {
+    "name": "pipool.mqtt.user",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.mqtt.user'"
+  },
+  {
+    "name": "pipool.mqtt.password",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.mqtt.password'"
+  },
+  {
+    "name": "pipool.scripts.restart",
+    "type": "java.lang.String",
+    "description": "A description for 'pipool.scripts.restart'"
   }
 ]}

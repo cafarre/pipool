@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import es.fdvcode.pipool.PiPoolContext;
 import es.fdvcode.pipool.common.ParameterizedMessage;
 import es.fdvcode.pipool.common.SystemCommand;
+import es.fdvcode.pipool.common.SystemCommand.SystemResult;
 import es.fdvcode.pipool.srv.persist.PiPoolPeriodicTaskPersist;
 import es.fdvcode.pipool.srv.scheduler.PiPoolScheduledTask;
 import es.fdvcode.pipool.srv.scheduler.SchedulerUtil;
@@ -34,6 +35,10 @@ public final class PiPoolScheduledTaskBackup implements PiPoolScheduledTask {
 	
 	@Value("${pipool.scheduler.backup.minut}")
 	private int minut;
+
+	@Value("${pipool.scripts.pushchanges}")
+	private String script_pushchanges;
+
 	
 	private final PiPoolContext ctx;
 	private final SystemCommand sysCmd;
@@ -50,10 +55,10 @@ public final class PiPoolScheduledTaskBackup implements PiPoolScheduledTask {
 		persister.run();
 		
 		//BACKUP
-		String script = "./pushchanges.sh";
+		String script = script_pushchanges;
 		try {
-			String strOut = sysCmd.runScript(script);
-			log.info("RESULTAT Execució SystemCommand [{}] -> {}", script, strOut);
+			SystemResult sr = sysCmd.runScript(script);
+			log.info("RESULTAT Execució SystemCommand [{}] -> exitValue: {} Salida: {}.", script, sr.getExitValue(), sr.getOut());
 		} 
 		catch (Exception e) {
 			ParameterizedMessage msg = new ParameterizedMessage("Error al executar script [{}] -> {}.", script, e.getMessage()); 

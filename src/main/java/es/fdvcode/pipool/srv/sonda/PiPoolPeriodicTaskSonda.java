@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import es.fdvcode.pipool.PiPoolContext;
-import es.fdvcode.pipool.common.ParameterizedMessage;
 import es.fdvcode.pipool.model.sonda.Sonda;
 import es.fdvcode.pipool.srv.scheduler.PiPoolPeriodicTask;
 import es.fdvcode.pipool.srv.sonda.atlasi2c.SondaAtlasErrorException;

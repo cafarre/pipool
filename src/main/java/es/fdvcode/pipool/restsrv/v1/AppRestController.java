@@ -7,6 +7,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import es.fdvcode.pipool.PiPoolContext;
 import es.fdvcode.pipool.common.ObjJsonPrinter;
 import es.fdvcode.pipool.common.SystemCommand;
+import es.fdvcode.pipool.common.SystemCommand.SystemResult;
 import es.fdvcode.pipool.restsrv.v1.response.QuadreComandament;
 import es.fdvcode.pipool.restsrv.v1.response.RestResponse;
 import es.fdvcode.pipool.restsrv.v1.sonda.SondaTempRestController;
@@ -54,6 +56,14 @@ public class AppRestController {
 	@Autowired 
 	ObjJsonPrinter objJsonPrinter;
 	
+	@Value("${pipool.scripts.pushchanges}")
+	private String script_pushchanges;
+	
+	@Value("${pipool.scripts.pullchanges}")
+	private String script_pullchanges;
+	
+	@Value("${pipool.scripts.restart}")
+	private String script_restart;
 	
 	/**
 	 * 
@@ -98,7 +108,7 @@ public class AppRestController {
 			persister.run();
 			
 			//Reboot App
-			sysCmd.runScript("./restart.sh");
+			sysCmd.runScript(script_restart);
 			return new RestResponse<>(true, HttpStatus.OK);
 		} 
 		catch (IOException | InterruptedException e) {
@@ -134,9 +144,9 @@ public class AppRestController {
 			persister.run();
 			
 			//Pull & Push changes to GitHub
-			String script = "./pushchanges.sh";
-			String strOut = sysCmd.runScript(script);
-			log.info("RESULTAT Execució SystemCommand [{}] -> {}", script, strOut);
+			String script = script_pushchanges;
+			SystemResult sr = sysCmd.runScript(script);
+			log.info("RESULTAT Execució SystemCommand [{}] -> exitValue: {} Salida: {}.", script, sr.getExitValue(), sr.getOut());
 
 			return new RestResponse<>(true, HttpStatus.OK);
 		} 
@@ -156,9 +166,9 @@ public class AppRestController {
 		log.info("REST - Pull changes from GitHub.");
 		try {
 			//Pull changes from GitHub
-			String script = "./pullchanges.sh";
-			String strOut = sysCmd.runScript(script);
-			log.info("RESULTAT Execució SystemCommand [{}] -> {}", script, strOut);			
+			String script = script_pushchanges;
+			SystemResult sr = sysCmd.runScript(script);
+			log.info("RESULTAT Execució SystemCommand [{}] -> exitValue: {} Salida: {}.", script, sr.getExitValue(), sr.getOut());			
 			return new RestResponse<>(true, HttpStatus.OK);
 		} 
 		catch (IOException | InterruptedException e) {

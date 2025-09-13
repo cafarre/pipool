@@ -10,63 +10,62 @@ import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.stereotype.Component;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
 @Component
 public class SystemCommand {
 
 	protected final Logger log = LoggerFactory.getLogger(this.getClass());
 	
-	public String executeCommandQuery(String[] command) throws IOException, InterruptedException {
-
-		StringBuilder output = new StringBuilder();
-
+	public SystemResult executeCommandQuery(String ... command) throws IOException, InterruptedException {
 		Process process = Runtime.getRuntime().exec(command);
+	    try {
+			return handleProcess(process);
+		} catch (Exception e) {
+			FormattingTuple msg = MessageFormatter.format("Error al executar commanda [{}] -> {}.", command, e.getMessage());
+			throw new RuntimeException(msg.getMessage());
+		} 	    
+	}
+	
+	public SystemResult runScript(String script) throws IOException, InterruptedException {
+	    ProcessBuilder processBuilder = new ProcessBuilder(script); //script="./nameOfScript.sh"
+	    processBuilder.inheritIO();
+	    processBuilder.redirectErrorStream(true); // Fusiona stdout y stderr
+	    Process process = processBuilder.start();
+	    
+	    try {
+			return handleProcess(process);
+		} catch (Exception e) {
+			FormattingTuple msg = MessageFormatter.format("Error al executar script [{}] {}.", script, e.getMessage());
+			throw new RuntimeException(msg.getMessage());
+		} 
+	}	
+	
+	private SystemResult handleProcess(Process process) throws IOException, InterruptedException {
+		BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+		String line;
+	    StringBuilder output = new StringBuilder();
+		while ((line = reader.readLine())!= null) {
+			output.append(line).append("\n");
+		}
+		
 		int exitValue = process.waitFor();
+		
 	    if (exitValue != 0) {
-			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-			String line;
-			while ((line = reader.readLine())!= null) {
-				output.append(line).append("\n");
-			}
-			FormattingTuple msg = MessageFormatter.format("Error al executar commanda [{}] -> {}.", command, output);
+	    	FormattingTuple msg = MessageFormatter.arrayFormat("ExitValue: {} -> {}.", new Object[] {exitValue, output});
 	        throw new RuntimeException(msg.getMessage());
 	    }
 	    else {
-			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-			String line;
-			while ((line = reader.readLine())!= null) {
-				output.append(line).append("\n");
-			}
-	    
-			return output.toString();
+			return new SystemResult(output.toString(), exitValue);
 	    }
 	}
 	
-	public String runScript(String script) throws IOException, InterruptedException {
-	    ProcessBuilder processBuilder = new ProcessBuilder(script); //script="./nameOfScript.sh"
-	    processBuilder.inheritIO();
-	    Process process = processBuilder.start();
-
-	    int exitValue = process.waitFor();
-	    StringBuilder output = new StringBuilder();
-	    if (exitValue != 0) {
-			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-			String line;
-			while ((line = reader.readLine())!= null) {
-				output.append(line).append("\n");
-			}
-			
-			FormattingTuple msg = MessageFormatter.format("Error al executar script [{}] -> {}.", script, output);
-	        throw new RuntimeException(msg.getMessage());
-	    }
-	    else {
-			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-			String line;
-			while ((line = reader.readLine())!= null) {
-				output.append(line).append("\n");
-			}
-	    
-			return output.toString();
-	    }
-	}	
+	@Data
+	@AllArgsConstructor
+	public class SystemResult {
+		private String out;
+		private int exitValue;
+	}
 	
 }

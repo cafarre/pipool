@@ -47,6 +47,10 @@ server:
 pipool:
   app:
     version: "@project.version@"
+  scripts:
+    pushchanges: /home/pi/pipool/pushchanges.sh
+    pullchanges: /home/pi/pipool/pullchanges.sh
+    restart: /home/pi/pipool/restart.sh
   security:
     #usar este comando para generar una: openssl rand -base64 64
     secret-jwt-key: ${JWT_SECRET:}                # <- viene de env

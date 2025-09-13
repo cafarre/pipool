@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import es.fdvcode.pipool.PiPoolContext;
 import es.fdvcode.pipool.common.ObjJsonPrinter;
 import es.fdvcode.pipool.common.SystemCommand;
+import es.fdvcode.pipool.common.SystemCommand.SystemResult;
 import es.fdvcode.pipool.restsrv.v1.response.RestResponse;
 import es.fdvcode.pipool.srv.persist.PiPoolPeriodicTaskPersist;
 
@@ -136,8 +137,8 @@ public class RpiStateRestController {
 //				result.put("Hostname", String.valueOf(NetworkInfo.getHostname()));
 //				result.put("IPAddress", String.valueOf(NetworkInfo.getIPAddress()));
 				
-				String str = sysCmd.executeCommandQuery(new String[]{"wpa_cli","list_network"});
-				result.put("NetworkList", str);
+				SystemResult str = sysCmd.executeCommandQuery(new String[]{"wpa_cli","list_network"});
+				result.put("NetworkList", str.getOut());
 			} catch (Exception e) {
 				log.error(e.getMessage(), e);
 			}
