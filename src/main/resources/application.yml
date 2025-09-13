@@ -98,6 +98,7 @@ logging:
     name: logs/pipool.log
   level:
     root: ERROR
+    org.springframework.boot: INFO
     org.springframework.web: INFO
     es.fdvcode.pipool: INFO
   pattern:

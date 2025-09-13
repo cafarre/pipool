@@ -1,5 +1,6 @@
 package es.fdvcode.pipool.mqtt;
 
+import org.aopalliance.aop.Advice;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +20,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
+import org.springframework.retry.interceptor.RetryInterceptorBuilder;
 
 import es.fdvcode.pipool.mqtt.homeassistant.HomeAssistantMqttSubscriber;
 import es.fdvcode.pipool.mqtt.shelly.ShellyMqttSubscriber;
@@ -114,24 +116,34 @@ public class MqttConfiguration {
         DefaultMqttPahoClientFactory factory = new DefaultMqttPahoClientFactory();
         MqttConnectOptions options = new MqttConnectOptions();
         
-        //TODO posar en properties
-        options.setUserName(mqttUser);
-        options.setPassword(mqttPassword.toCharArray());
         options.setServerURIs(new String[] {"tcp://" + urlMqttBroker });
+        options.setCleanSession(true);
+        options.setUserName(mqttUser);
+        options.setKeepAliveInterval(90);
+        options.setPassword(mqttPassword.toCharArray());
+        
         factory.setConnectionOptions(options);
         
         return factory;
     }
 
     @Bean
-    @ServiceActivator(inputChannel = "mqttOutboundChannel")
+    Advice retryAdvice() {
+        return RetryInterceptorBuilder.stateless()
+                .maxAttempts(5) // Número máximo de intentos
+                .backOffOptions(1000, 2.0, 10000) // 1s de espera inicial, factor de crecimiento de 2.0, máximo 10s
+                .build();
+    }
+
+    @Bean
+    @ServiceActivator(inputChannel = "mqttOutboundChannel", adviceChain = "retryAdvice")
     MessageHandler mqttOutbound(MqttPahoClientFactory mqttClientFactory) {
         MqttPahoMessageHandler messageHandler = new MqttPahoMessageHandler(MQTT_CLIENTID_PUB, mqttClientFactory);
         messageHandler.setAsync(true);
-        messageHandler.setDefaultTopic("default");
+        messageHandler.setDefaultTopic(topicPrefixHA);
         return messageHandler;
     }
-
+    
     @Bean
     MessageChannel mqttOutboundChannel() {
         return new DirectChannel();
