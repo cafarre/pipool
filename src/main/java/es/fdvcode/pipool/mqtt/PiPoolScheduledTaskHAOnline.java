@@ -1,5 +1,6 @@
 package es.fdvcode.pipool.mqtt;
 
+import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.Executors;
@@ -11,11 +12,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import es.fdvcode.pipool.common.SystemCommand;
 import es.fdvcode.pipool.model.rele.Rele;
 import es.fdvcode.pipool.model.rele.StateRele;
 import es.fdvcode.pipool.model.rele.StateRele.CausaState;
 import es.fdvcode.pipool.model.rele.StateRele.ModeRele;
 import es.fdvcode.pipool.mqtt.homeassistant.HomeAssistantMqttSubscriber;
+import es.fdvcode.pipool.srv.persist.PiPoolPeriodicTaskPersist;
 import es.fdvcode.pipool.srv.rele.RelesQuerySrv;
 import es.fdvcode.pipool.srv.rele.RelesSrv;
 import es.fdvcode.pipool.srv.scheduler.PiPoolPeriodicTask;
@@ -45,10 +48,15 @@ public final class PiPoolScheduledTaskHAOnline implements PiPoolPeriodicTask {
 	@Value("${pipool.scheduler.haonline.max-minutes-offline}")
 	private int maxMinutesOffline;
 	
+	@Value("${pipool.scripts.restart}")
+	private String script_restart;
+
 	private final HomeAssistantMqttSubscriber mqtt;
 	private final RelesSrv relesSrv;
 	private final RelesQuerySrv relesQuerySrv;
-	
+	private final PiPoolPeriodicTaskPersist persister;
+	private final SystemCommand sysCmd;
+
 	
 	@PostConstruct
 	public void run() {
@@ -68,6 +76,9 @@ public final class PiPoolScheduledTaskHAOnline implements PiPoolPeriodicTask {
 					if(limit.getTimeInMillis() < new Date().getTime()) {
 						log.info("FA {} MINUTS QUE NO HI HA CAP HEARTBEAT DE HA. Ultim: {}", maxMinutesOffline, mqtt.getHeartbeatHA());
 						pararBombesEngegadesPerHA();
+						
+						//Reiniciem per si s'ha quedat enganxat MQTT
+						reiniciaApp();
 					}
 					
 				} catch (Exception e) {
@@ -89,6 +100,20 @@ public final class PiPoolScheduledTaskHAOnline implements PiPoolPeriodicTask {
 			if(state.isOn() && state.getCausa().equals(CausaState.ON_HA)) {
 				relesSrv.setStateHA(state, false, ModeRele.AUTO);
 			}
+		}
+	}
+	
+	private void reiniciaApp() {
+		log.info("Restart PiPool App.");
+		try {
+			//Persisteix en fitxer
+			persister.run();
+			
+			//Reboot App
+			sysCmd.runScript(script_restart);
+		} 
+		catch (IOException | InterruptedException e) {
+			log.error("ERROR al fer Restart de la App PiPool.", e);
 		}
 	}
 	
