@@ -51,7 +51,7 @@
     "unitats": "°C",
     "haDeviceClass": "Temperature",
     "tipusSonda": "rPi",
-    "address": 1,
+    "address": 5,
     "minValor": -20.0,
     "maxValor": 60.0
   }

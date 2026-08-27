@@ -66,71 +66,28 @@ La compilación nativa en GraalVM para arquitectura **ARM64** (Raspberry Pi) req
 ## 🍓 3. Despliegue en Raspberry Pi
 
 ### 1. Transferencia del Binario a la Raspberry Pi
-Descarga el binario ejecutable `pipool` generado en la Release de GitHub directamente en la Raspberry Pi o transfiriéndolo vía `scp`:
+Conectar a la maquina de producción RaspberryPi Zero 2
 
 ```bash
-# Opción A: Transferir desde tu equipo local vía SCP
-scp target/pipool pi@<IP_RASPBERRY>:/home/pi/pipool/pipool
+ssh pi@10.0.0.22
 
-# Opción B: Descargar directamente en la Raspberry Pi desde GitHub Releases
-curl -L -O https://github.com/<usuario>/pipool/releases/download/v4.1.0/pipool
 ```
 
-### 2. Estructura de Directorios Requerida en la Raspberry Pi
-En el directorio de ejecución de la Raspberry Pi (ej. `/home/pi/pipool/`), deben existir las carpetas de configuración y registros:
+### 2. Actualización del entorno de ejecución y configuración de pipool
+Antes de ejecutar el despliegue hay que asegurar que hemos hecho commit y push de todos los cambios de configuración en el proyecto pipool-data-prod
 
-```text
-/home/pi/pipool/
-├── pipool                  # Binario ejecutable nativo
-├── conf/
-│   ├── sondes.json         # Configuración de sondas y umbrales
-│   └── reles.json          # Configuración de relés
-└── logs/                   # Directorio de logs (se crea automáticamente)
-```
+Luego en el directorio de ejecución de la Raspberry Pi (ej. `/home/pi/pipool/`) ejecutar **pull** para descargar los cambios:
 
-### 3. Asignación de Permisos y Ejecución Manual
 ```bash
 cd /home/pi/pipool
-chmod +x pipool
-./pipool
+sudo git pull
 ```
 
-### 4. Configurar como Servicio del Sistema (systemd)
-Para que PiPool se ejecute automáticamente como demonio al arrancar la Raspberry Pi:
+### 3. Ejecutar el script de despliegue de la ultima release
+En el directorio de ejecución de la Raspberry Pi (ej. `/home/pi/pipool/`), debe existir un script de despliegue llamado `deploy_native.sh`:
 
-1. Crear el archivo de servicio `/etc/systemd/system/pipool.service`:
-   ```bash
-   sudo nano /etc/systemd/system/pipool.service
-   ```
+```bash
+cd /home/pi/pipool
+./deploy_native.sh
+```
 
-2. Añadir el siguiente contenido:
-   ```ini
-   [Unit]
-   Description=PiPool App Service
-   After=network.target
-
-   [Service]
-   Type=simple
-   User=pi
-   WorkingDirectory=/home/pi/pipool
-   ExecStart=/home/pi/pipool/pipool
-   Restart=always
-   RestartSec=10
-   Environment=SEC_USER=tu_usuario SEC_PASSWORD=tu_password JWT_SECRET=tu_jwt_secret
-
-   [Install]
-   WantedBy=multi-user.target
-   ```
-
-3. Recargar y activar el servicio:
-   ```bash
-   sudo systemctl daemon-reload
-   sudo systemctl enable pipool
-   sudo systemctl start pipool
-   ```
-
-4. Ver el estado y los logs:
-   ```bash
-   sudo systemctl status pipool
-   journalctl -u pipool -f
-   ```

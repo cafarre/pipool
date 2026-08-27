@@ -73,7 +73,7 @@ public class SondesLoader {
 		sonda = new Sonda("temp_cpu_rpi", "Temp CPU rPi ºC", TipusSonda.rPi, "ºC", "Temperature", 1, 4, 0.0, 100.0);
 		mapSondes.put(sonda.getId(), sonda);
 
-		sonda = new Sonda("temp_shelly_flood", "Temp Caseta", TipusSonda.rPi, "ºC", "Temperature", 1, 5, -20.0, 60.0);
+		sonda = new Sonda("temp_shelly_flood", "Temp Caseta", TipusSonda.rPi, "ºC", "Temperature", 5, 5, -20.0, 60.0);
 		mapSondes.put(sonda.getId(), sonda);
 	}
 
