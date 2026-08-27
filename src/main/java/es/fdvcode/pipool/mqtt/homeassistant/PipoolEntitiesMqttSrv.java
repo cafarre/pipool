@@ -100,7 +100,9 @@ public class PipoolEntitiesMqttSrv {
 	public void pubStateSonda(String idSonda) {
 		try {
 			EntityMqtt entity = loader.loadSonda(idSonda);
-			mqttPub.state(entity);
+			if (entity != null) {
+				mqttPub.state(entity);
+			}
 		} catch (Exception e) {
 			log.warn("Error al publicar algun MQTT.", e);
 		}
@@ -110,7 +112,9 @@ public class PipoolEntitiesMqttSrv {
 	public void pubStateSonda(Sonda sonda) {
 		try {
 			EntityMqtt entity = loader.loadSonda(sonda);
-			mqttPub.state(entity);
+			if (entity != null) {
+				mqttPub.state(entity);
+			}
 		} catch (Exception e) {
 			log.warn("Error al publicar algun MQTT.", e);
 		}

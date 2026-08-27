@@ -29,6 +29,8 @@ public class Sonda{
 	private TipusSonda tipusSonda = TipusSonda.Atlas;
 	private int address;
 	private String idReleCorrector;
+	private Double minValor;
+	private Double maxValor;
 
 	//Estat Actual Sonda
 	@JsonIgnore
@@ -38,18 +40,11 @@ public class Sonda{
 	private List<StateSonda> historic=Collections.synchronizedList(new ArrayList<>());
 	
 	/**
-	 * default
+	 * default (requerido por Jackson per a deserealització JSON)
 	 */
 	public Sonda() {}
 	
-	/**
-	 * 
-	 * @param id
-	 * @param nom
-	 * @param address
-	 * @param unitats
-	 */
-	public Sonda(String id, String nom, TipusSonda tipusSonda, String unitats, String haDeviceClass, int address, int ordre) {
+	public Sonda(String id, String nom, TipusSonda tipusSonda, String unitats, String haDeviceClass, int address, int ordre, Double minValor, Double maxValor) {
 		super();
 		this.id = id;
 		this.nom = nom;
@@ -58,6 +53,8 @@ public class Sonda{
 		this.tipusSonda = tipusSonda;
 		this.address = address;
 		this.ordre = ordre;
+		this.minValor = minValor;
+		this.maxValor = maxValor;
 	}
 	
 	public String getId() {
@@ -87,6 +84,40 @@ public class Sonda{
 	}	
 	public String getIdReleCorrector() {
 		return idReleCorrector;
+	}
+
+	public Double getMinValor() {
+		return minValor;
+	}
+
+	public void setMinValor(Double minValor) {
+		this.minValor = minValor;
+	}
+
+	public Double getMaxValor() {
+		return maxValor;
+	}
+
+	public void setMaxValor(Double maxValor) {
+		this.maxValor = maxValor;
+	}
+
+	public boolean isReadingValid(String strValor) {
+		if (strValor == null || strValor.trim().isEmpty()) {
+			return false;
+		}
+		try {
+			double val = Double.parseDouble(strValor.trim());
+			if (minValor != null && val < minValor) {
+				return false;
+			}
+			if (maxValor != null && val > maxValor) {
+				return false;
+			}
+			return true;
+		} catch (NumberFormatException e) {
+			return false;
+		}
 	}
 
 	@JsonProperty("stateSonda")

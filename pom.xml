@@ -4,7 +4,7 @@
 
   <groupId>es.fdvcode</groupId>
   <artifactId>pipool</artifactId>
-  <version>4.0.9</version>
+  <version>4.1.0</version>
   <packaging>jar</packaging>
   <name>PiPool App</name>
   

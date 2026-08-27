@@ -1,44 +1,58 @@
-[ {
-  "id" : "sonda_temp",
-  "nom" : "Sonda Temp°C",
-  "ordre" : 1,
-  "unitats" : "°C",
-  "haDeviceClass" : "Temperature",
-  "tipusSonda" : "Atlas",
-  "address" : 102
-}, {
-  "id" : "sonda_orp",
-  "nom" : "Sonda ORP/Redox",
-  "ordre" : 2,
-  "unitats" : "mV",
-  "tipusSonda" : "Atlas",
-  "address" : 98,
-  "idReleCorrector" : "rele_bomba_clor"
-}, {
-  "id" : "sonda_ph",
-  "nom" : "Sonda PH",
-  "ordre" : 3,
-  "unitats" : "ph",
-  "tipusSonda" : "Atlas",
-  "address" : 99,
-  "idReleCorrector" : "rele_bomba_acid"  
-}, {
-  "id" : "temp_cpu_rpi",
-  "nom" : "Temp CPU rPi °C",
-  "ordre" : 4,
-  "unitats" : "°C",
-  "haDeviceClass" : "Temperature",
-  "tipusSonda" : "rPi",
-  "address" : 1,
-  "idReleCorrector" : "rele_fan"
-}, {
-  "id" : "temp_shelly_flood",
-  "nom" : "Temp Caseta",
-  "ordre" : 5,
-  "unitats" : "°C",
-  "haDeviceClass" : "Temperature",
-  "tipusSonda" : "rPi",
-  "address" : 1
-} ]
-
-
+[
+  {
+    "id": "sonda_temp",
+    "nom": "Sonda Temp°C",
+    "ordre": 1,
+    "unitats": "°C",
+    "haDeviceClass": "Temperature",
+    "tipusSonda": "Atlas",
+    "address": 102,
+    "minValor": 0.0,
+    "maxValor": 60.0
+  },
+  {
+    "id": "sonda_orp",
+    "nom": "Sonda ORP/Redox",
+    "ordre": 2,
+    "unitats": "mV",
+    "tipusSonda": "Atlas",
+    "address": 98,
+    "idReleCorrector": "rele_bomba_clor",
+    "minValor": 0.0,
+    "maxValor": 1000.0
+  },
+  {
+    "id": "sonda_ph",
+    "nom": "Sonda PH",
+    "ordre": 3,
+    "unitats": "ph",
+    "tipusSonda": "Atlas",
+    "address": 99,
+    "idReleCorrector": "rele_bomba_acid",
+    "minValor": 0.0,
+    "maxValor": 14.0
+  },
+  {
+    "id": "temp_cpu_rpi",
+    "nom": "Temp CPU rPi °C",
+    "ordre": 4,
+    "unitats": "°C",
+    "haDeviceClass": "Temperature",
+    "tipusSonda": "rPi",
+    "address": 1,
+    "idReleCorrector": "rele_fan",
+    "minValor": 0.0,
+    "maxValor": 100.0
+  },
+  {
+    "id": "temp_shelly_flood",
+    "nom": "Temp Caseta",
+    "ordre": 5,
+    "unitats": "°C",
+    "haDeviceClass": "Temperature",
+    "tipusSonda": "rPi",
+    "address": 1,
+    "minValor": -20.0,
+    "maxValor": 60.0
+  }
+]

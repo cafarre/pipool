@@ -77,7 +77,11 @@ public abstract class SondaAtlas {
 	public String cmdTakeReading(Sonda sonda, boolean saveHistoric) throws SondaAtlasErrorException {
 	
 		String strValor = execCmd(sonda, "R");
-		sonda.setLecturaSonda(strValor, saveHistoric);
+		if (sonda.isReadingValid(strValor)) {
+			sonda.setLecturaSonda(strValor, saveHistoric);
+		} else {
+			log.warn("cmdTakeReading: Lectura descartada per a sonda {}: valor invàlid ({})", sonda.getId(), strValor);
+		}
 		
 		return strValor;
 	}

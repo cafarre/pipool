@@ -18,16 +18,19 @@ public class HomeAssistantMqttPublisher {
 	private final MqttEmitter emitter;
 
 	public void config(EntityMqtt entity) {
+		if (entity == null) return;
 		emitter.sendToMqtt(entity.getConfigPayload(), entity.getConfigurationTopic(), QOS, true);
 		log.info("MQTT PUB CONFIG -> Topic: {} - Payload: {}", entity.getConfigurationTopic(), entity.getConfigPayload());
 	}
 	
 	public void state(EntityMqtt entity) {
+		if (entity == null) return;
 		emitter.sendToMqtt(entity.getStatePayload(), entity.getStateTopic(), QOS, true);
 		log.info("MQTT PUB STATE -> Topic: {} - Payload: {}", entity.getStateTopic(), entity.getStatePayload());
 	}
 	
 	public void delete(EntityMqtt entity) {
+		if (entity == null) return;
 		emitter.sendToMqtt("", entity.getConfigurationTopic(), QOS, true);
 		log.info("MQTT PUB DELETE -> Topic: {} - Payload: Blank", entity.getConfigurationTopic());
 	}

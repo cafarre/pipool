@@ -169,7 +169,7 @@ public class PipoolEntitiesMqttLoader {
 	}
 	
 	public EntityMqtt loadSonda(Sonda sonda) {
-		if(sonda.getStateSonda() == null) {
+		if(sonda == null || sonda.getStateSonda() == null || !sonda.isReadingValid(sonda.getStateSonda().getValor())) {
 			return null;
 		}
 		

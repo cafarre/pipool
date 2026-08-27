@@ -54,7 +54,11 @@ public class SondesSrv {
 			readSondaRPi(sonda, saveHistoric);
 		}		
 		
-		pipoolMqtt.pubStateSonda(sonda);
+		if (sonda.getStateSonda() != null && sonda.isReadingValid(sonda.getStateSonda().getValor())) {
+			pipoolMqtt.pubStateSonda(sonda);
+		} else {
+			log.warn("No es publica l'estat per MQTT de la sonda {} per no tenir una lectura vàlida actualment.", sonda.getId());
+		}
 	}
 	
 	
@@ -62,19 +66,41 @@ public class SondesSrv {
 		log.trace("Tractant Sonda Atlas id: {}", sonda.getId());
 		
 		SondaAtlas sondaAtlas = sondesQuerySrv.getSondaAtlas(sonda);
-		sondaAtlas.cmdTakeReading(sonda, saveHistoric);
+		int maxIntents = 3;
+		String strValor = null;
+		boolean lecturaValida = false;
 		
-		//Si hem llegit temperatura fem compensation a SondaPH
-		if(sondaAtlas instanceof SondaAtlasRTD) {
-			//TODO: posar en fitxer config de sondes?
-			try {
-				Sonda sondaPh = sondesQuerySrv.getSonda(ID_SONDA_PH);
-				SondaAtlasPH sondaAtlasPh = (SondaAtlasPH)sondesQuerySrv.getSondaAtlas(sondaPh);
-				sondaAtlasPh.cmdSetTempCompensation(sondaPh, sonda.getStateSonda().getValor());
-				
-			} catch (ItemNotFoundException e) {
-				log.warn("No es troba la SONDA amb ID={}.", ID_SONDA_PH);
+		for (int i = 0; i < maxIntents; i++) {
+			strValor = sondaAtlas.execCmd(sonda, "R");
+			if (sonda.isReadingValid(strValor)) {
+				lecturaValida = true;
+				break;
 			}
+			log.warn("Lectura de la sonda {} no vàlida ({}) en el seu intent {}/{}.", sonda.getId(), strValor, i + 1, maxIntents);
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+		}
+		
+		if (lecturaValida) {
+			sonda.setLecturaSonda(strValor, saveHistoric);
+			
+			//Si hem llegit temperatura fem compensation a SondaPH
+			if(sondaAtlas instanceof SondaAtlasRTD) {
+				//TODO: posar en fitxer config de sondes?
+				try {
+					Sonda sondaPh = sondesQuerySrv.getSonda(ID_SONDA_PH);
+					SondaAtlasPH sondaAtlasPh = (SondaAtlasPH)sondesQuerySrv.getSondaAtlas(sondaPh);
+					sondaAtlasPh.cmdSetTempCompensation(sondaPh, strValor);
+					
+				} catch (ItemNotFoundException e) {
+					log.warn("No es troba la SONDA amb ID={}.", ID_SONDA_PH);
+				}
+			}
+		} else {
+			log.error("Sonda Atlas ID={} ha retornat valors no vàlids ({}) després de {} intents. Es descarta la lectura.", sonda.getId(), strValor, maxIntents);
 		}
 	}
 	
@@ -90,7 +116,11 @@ public class SondesSrv {
 				double cpuTemperature = getCpuTemperature();
 				strValor = String.valueOf(cpuTemperature);
 			}
-			sonda.setLecturaSonda(strValor, saveHistoric);
+			if (sonda.isReadingValid(strValor)) {
+				sonda.setLecturaSonda(strValor, saveHistoric);
+			} else {
+				log.error("Lectura de sonda rPi {} no vàlida ({}). Es descarta.", sonda.getId(), strValor);
+			}
 		}
 	}
 	

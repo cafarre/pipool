@@ -30,18 +30,18 @@ import jakarta.annotation.PostConstruct;
 public class SondesLoader {
 
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
-	
+
 	private final Map<String, Sonda> mapSondes = new HashMap<>();
 
 	@Value("${pipool.sondes.file}")
 	private String fileConfig;
-	
+
 	/**
 	 * constructor spring
 	 */
 	@PostConstruct
 	public void initClass() {
-		
+
 		log.info("Inicialitza SONDES's.");
 
 		try {
@@ -50,7 +50,7 @@ public class SondesLoader {
 			log.error("Error al llegir Json de Sondes.", e);
 			initDefaultMap();
 		}
-		
+
 		log.info("S'han trobat {} sondes definides.", mapSondes.size());
 	}
 
@@ -58,29 +58,32 @@ public class SondesLoader {
 	 * Default Map
 	 */
 	public void initDefaultMap() {
-		
+
 		log.info("Carreguem Sondes per defecte.");
-		
-		Sonda sonda = new Sonda("sonda_orp", "Sonda ORP/Redox", TipusSonda.Atlas, "mV", "None", 98, 2);
+
+		Sonda sonda = new Sonda("sonda_orp", "Sonda ORP/Redox", TipusSonda.Atlas, "mV", "None", 98, 2, 0.0, 1000.0);
 		mapSondes.put(sonda.getId(), sonda);
 
-		sonda = new Sonda("sonda_ph", "Sonda PH", TipusSonda.Atlas, "ph", "None", 99, 3);
+		sonda = new Sonda("sonda_ph", "Sonda PH", TipusSonda.Atlas, "ph", "None", 99, 3, 0.0, 14.0);
 		mapSondes.put(sonda.getId(), sonda);
 
-		sonda = new Sonda("sonda_temp", "Sonda TempºC", TipusSonda.Atlas, "ºC", "Temperature", 102, 1);
+		sonda = new Sonda("sonda_temp", "Sonda TempºC", TipusSonda.Atlas, "ºC", "Temperature", 102, 1, 0.0, 60.0);
 		mapSondes.put(sonda.getId(), sonda);
 
-		sonda = new Sonda("temp_cpu_rpi", "Temp CPU rPi ºC", TipusSonda.rPi, "ºC", "Temperature", 1, 4);
+		sonda = new Sonda("temp_cpu_rpi", "Temp CPU rPi ºC", TipusSonda.rPi, "ºC", "Temperature", 1, 4, 0.0, 100.0);
+		mapSondes.put(sonda.getId(), sonda);
+
+		sonda = new Sonda("temp_shelly_flood", "Temp Caseta", TipusSonda.rPi, "ºC", "Temperature", 1, 5, -20.0, 60.0);
 		mapSondes.put(sonda.getId(), sonda);
 	}
-	
+
 	public Map<String, Sonda> getSondes() {
-		if(mapSondes==null) {
+		if (mapSondes == null) {
 			initClass();
 		}
 		return mapSondes;
 	}
-	
+
 	/**
 	 * 
 	 * @throws JsonGenerationException
@@ -89,21 +92,22 @@ public class SondesLoader {
 	 */
 	public void loadJsonFile() throws IOException {
 		ObjectMapper mapper = new ObjectMapper();
-		
-		//JSON file to List Java
-		TypeReference<List<Sonda>> mapType = new TypeReference<List<Sonda>>() {};
-    	List<Sonda> jsonToList = mapper.readValue(new File(fileConfig), mapType);
 
-    	if(jsonToList!=null) {
-    		this.mapSondes.clear();
-    		
-    		for(Sonda sonda : jsonToList) {
-    			mapSondes.put(sonda.getId(), sonda);
-    		}
-    	}
-    	
-    	log.info("JSON de Sonda llegida i carregada OK.");
-	}	
+		// JSON file to List Java
+		TypeReference<List<Sonda>> mapType = new TypeReference<List<Sonda>>() {
+		};
+		List<Sonda> jsonToList = mapper.readValue(new File(fileConfig), mapType);
+
+		if (jsonToList != null) {
+			this.mapSondes.clear();
+
+			for (Sonda sonda : jsonToList) {
+				mapSondes.put(sonda.getId(), sonda);
+			}
+		}
+
+		log.info("JSON de Sonda llegida i carregada OK.");
+	}
 
 	/**
 	 * 
@@ -112,8 +116,8 @@ public class SondesLoader {
 	public void writeJsonFile() throws IOException {
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.enable(SerializationFeature.INDENT_OUTPUT);
-		
-		//Object to JSON in file
+
+		// Object to JSON in file
 		mapper.writeValue(new File(fileConfig), mapSondes.values());
 
 		log.info("JSON de Sonda grabat OK.");
