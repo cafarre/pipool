@@ -123,6 +123,15 @@ public final class PiPoolPeriodicTaskRele implements PiPoolPeriodicTask {
 		log.trace("Tractant Rele id: {}", rele.getId());
 
 		StateRele state = rele.getCopyStateRele();
+		if(!rele.isEnabled()) {
+			log.trace("El rele {} està deshabilitat. No es farà cap tractament ni activació.", rele.getId());
+			if(state.isOn()) {
+				log.warn("SCHEDULER RELES - Relé deshabilitat [{}] trobat en ON. Forçant desactivació immediata.", rele.getId());
+				relesSrv.setStateAuto(state, false);
+			}
+			return;
+		}
+
 		if(state.getCausa().equals(StateRele.CausaState.OFF_SHUTDOWN)) {
 			log.trace("El rele {} s'ha marcat per Shutdown. No es farà cap activació AUTO.", rele.getId());
 			return;

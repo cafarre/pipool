@@ -39,6 +39,7 @@ public class Rele{
 	private Integer secondsDuradaCicles;
 	private String unitatConsumHora;
 	private double consumHora;
+	private boolean enabled = true;
 	
 	//DefinicioCalendaris
 	@JsonManagedReference
@@ -92,22 +93,37 @@ public class Rele{
 	public String getNom() {
 		return nom;
 	}
+	public void setNom(String nom) {
+		this.nom = nom;
+	}
 
 	public String getMqttType() {
 		return mqttType;
+	}
+	public void setMqttType(String mqttType) {
+		this.mqttType = mqttType;
 	}
 
 	public boolean isMqttEnabled() {
 		return mqttEnabled;
 	}
+	public void setMqttEnabled(boolean mqttEnabled) {
+		this.mqttEnabled = mqttEnabled;
+	}
 
 	public boolean isMqttConsumSensorEnabled() {
 		return mqttConsumSensorEnabled;
+	}
+	public void setMqttConsumSensorEnabled(boolean mqttConsumSensorEnabled) {
+		this.mqttConsumSensorEnabled = mqttConsumSensorEnabled;
 	}
 
 	public int getOrdre() {
 		return ordre;
 	}	
+	public void setOrdre(int ordre) {
+		this.ordre = ordre;
+	}
 	
 	public int getGpioPin() {
 		return gpioPin;
@@ -119,6 +135,9 @@ public class Rele{
 
 	public String getIdReleMaster() {
 		return idReleMaster;
+	}
+	public void setIdReleMaster(String idReleMaster) {
+		this.idReleMaster = idReleMaster;
 	}
 
 	public List<CalendarRele> getCalendars() {
@@ -135,9 +154,22 @@ public class Rele{
 	public List<RuleRele> getRules() {
 		return rules;
 	}
+	public void setRules(List<RuleRele> rules) {
+		this.rules = rules;
+	}
 	
 	public boolean isRulesOn() {
 		return rulesOn;
+	}
+	public void setRulesOn(boolean rulesOn) {
+		this.rulesOn = rulesOn;
+	}
+
+	public boolean isEnabled() {
+		return enabled;
+	}
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
 	}
 
 	public Integer getSecondsDuradaCicles() {
@@ -154,13 +186,22 @@ public class Rele{
 	public String getUnitatConsumHora() {
 		return unitatConsumHora;
 	}
+	public void setUnitatConsumHora(String unitatConsumHora) {
+		this.unitatConsumHora = unitatConsumHora;
+	}
 
 	public Double getConsumHora() {
 		return consumHora;
 	}
+	public void setConsumHora(double consumHora) {
+		this.consumHora = consumHora;
+	}
 
 	public boolean isMasterOnObligatori() {
 		return masterOnObligatori;
+	}
+	public void setMasterOnObligatori(boolean masterOnObligatori) {
+		this.masterOnObligatori = masterOnObligatori;
 	}
 
 	@JsonProperty("stateRele")

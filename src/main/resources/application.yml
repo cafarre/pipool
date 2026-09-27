@@ -90,7 +90,7 @@ pipool:
       minut: 59     
   reles:
     file: conf/reles.json
-    idReleBomba: ReleBomba
+    idReleBomba: rele_bomba
     numDiesHistoria: 4
   sondes:
     file: conf/sondes.json

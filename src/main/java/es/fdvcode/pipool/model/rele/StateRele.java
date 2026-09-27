@@ -345,6 +345,9 @@ public class StateRele implements Cloneable {
 	 * @return
 	 */
 	public boolean teActivacions() {
+		if (this.rele != null && !this.rele.isEnabled()) {
+			return false;
+		}
 		
 		boolean desactivacioForzada = this.isDesactivacioManual() || 
 				this.isDesactivacioReleMaster();
@@ -363,6 +366,9 @@ public class StateRele implements Cloneable {
 	 * @return
 	 */
 	public boolean teActivacionsActives() {
+		if (this.rele != null && !this.rele.isEnabled()) {
+			return false;
+		}
 		
 		boolean desactivacioForzada = this.isDesactivacioManual() || 
 				this.isDesactivacioReleMaster();

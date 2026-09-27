@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -16,7 +17,9 @@ import es.fdvcode.pipool.common.ObjJsonPrinter;
 import es.fdvcode.pipool.model.sonda.PersistibleSondaBomba;
 import es.fdvcode.pipool.model.sonda.Sonda;
 import es.fdvcode.pipool.model.sonda.StateSonda;
+import es.fdvcode.pipool.restsrv.v1.dto.SondaConfigDto;
 import es.fdvcode.pipool.restsrv.v1.response.RestResponse;
+import es.fdvcode.pipool.srv.ItemNotFoundException;
 import es.fdvcode.pipool.srv.sonda.SondesLoader;
 import es.fdvcode.pipool.srv.sonda.SondesPersister;
 import es.fdvcode.pipool.srv.sonda.SondesQuerySrv;
@@ -128,5 +131,29 @@ public abstract class SondesRestController {
 		}
 		
 		return getAllSondes();
+	}
+		
+	/**
+	 * Actualitza la configuració de la sonda (límits, relé corrector, nom, etc.).
+	 * 
+	 * @param dto
+	 * @return
+	 */
+	@PutMapping("/config")
+	public RestResponse<Sonda> updateConfig(@RequestBody SondaConfigDto dto) {
+		log.info("REST - Update Config Sonda {} with address={}.", getTipusSonda(), this.getAddressSonda());
+		try {
+			Sonda sonda = sondesSrv.updateConfig(this.getAddressSonda(), dto);
+			return new RestResponse<>(sonda, HttpStatus.OK);
+		} catch (ItemNotFoundException e) {
+			log.warn("Sonda {} with address={} not found.", getTipusSonda(), this.getAddressSonda());
+			return new RestResponse<>(HttpStatus.NOT_FOUND);
+		} catch (IllegalArgumentException e) {
+			log.warn("Dades invàlides en actualitzar config de la sonda {}: {}", getTipusSonda(), e.getMessage());
+			return new RestResponse<>(HttpStatus.BAD_REQUEST, e.getMessage());
+		} catch (IOException e) {
+			log.error("Error d'E/S al persistir config de la sonda {}.", getTipusSonda(), e);
+			return new RestResponse<>(HttpStatus.INTERNAL_SERVER_ERROR, "Error al guardar fitxer de configuració");
+		}
 	}
 }

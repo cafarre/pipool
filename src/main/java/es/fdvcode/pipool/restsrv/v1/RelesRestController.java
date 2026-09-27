@@ -14,16 +14,20 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import es.fdvcode.pipool.common.ObjJsonPrinter;
+import es.fdvcode.pipool.model.rele.CalendarRele;
 import es.fdvcode.pipool.model.rele.FranjaHoraria;
 import es.fdvcode.pipool.model.rele.PersistibleRele;
 import es.fdvcode.pipool.model.rele.Rele;
 import es.fdvcode.pipool.model.rele.ResultatEvalCondicions;
+import es.fdvcode.pipool.model.rele.RuleRele;
 import es.fdvcode.pipool.model.rele.StateRele;
+import es.fdvcode.pipool.restsrv.v1.dto.ReleConfigDto;
 import es.fdvcode.pipool.restsrv.v1.response.RestResponse;
 import es.fdvcode.pipool.srv.ItemNotFoundException;
 import es.fdvcode.pipool.srv.rele.RelesLoader;
@@ -152,6 +156,10 @@ public class RelesRestController {
         	log.warn("Rele with id={} not found.", idRele);
             return new RestResponse<>(HttpStatus.NOT_FOUND);
 		}
+		catch (IllegalStateException e) {
+			log.warn("Operació [ON TEMPORAL] no permesa sobre el relé {}: {}", idRele, e.getMessage());
+			return new RestResponse<>(HttpStatus.CONFLICT, e.getMessage());
+		}
 	}
 	
 	/**
@@ -260,6 +268,104 @@ public class RelesRestController {
             return new RestResponse<>(HttpStatus.NOT_FOUND);
 		}
 	}
+
+	/**
+	 * Actualitza la configuració dels calendaris i franges horàries del relé.
+	 * 
+	 * @param idRele
+	 * @param calendars
+	 * @return
+	 */
+	@PutMapping("/{id}/calendars")
+	public RestResponse<Rele> updateCalendars(
+			@PathVariable("id") String idRele,
+			@RequestBody List<CalendarRele> calendars) {
+
+		log.info("REST - Update Calendars Rele with id={}.", idRele);
+		try {
+			Rele rele = relesSrv.updateCalendars(idRele, calendars);
+			return new RestResponse<>(rele, HttpStatus.OK);
+		} catch (ItemNotFoundException e) {
+			log.warn("Rele with id={} not found.", idRele);
+			return new RestResponse<>(HttpStatus.NOT_FOUND);
+		} catch (IllegalArgumentException e) {
+			log.warn("Dades invàlides en actualitzar calendaris del relé {}: {}", idRele, e.getMessage());
+			return new RestResponse<>(HttpStatus.BAD_REQUEST, e.getMessage());
+		} catch (IOException e) {
+			log.error("Error d'E/S al persistir calendaris del relé {}.", idRele, e);
+			return new RestResponse<>(HttpStatus.INTERNAL_SERVER_ERROR, "Error al guardar fitxer de configuració");
+		}
+	}
+
+	/**
+	 * Actualitza les regles d'activació automàtica del relé.
+	 * 
+	 * @param idRele
+	 * @param rules
+	 * @return
+	 */
+	@PutMapping("/{id}/rules")
+	public RestResponse<Rele> updateRules(
+			@PathVariable("id") String idRele,
+			@RequestBody List<RuleRele> rules) {
+
+		log.info("REST - Update Rules Rele with id={}.", idRele);
+		try {
+			Rele rele = relesSrv.updateRules(idRele, rules);
+			return new RestResponse<>(rele, HttpStatus.OK);
+		} catch (ItemNotFoundException e) {
+			log.warn("Rele with id={} not found.", idRele);
+			return new RestResponse<>(HttpStatus.NOT_FOUND);
+		} catch (IllegalArgumentException e) {
+			log.warn("Dades invàlides en actualitzar regles del relé {}: {}", idRele, e.getMessage());
+			return new RestResponse<>(HttpStatus.BAD_REQUEST, e.getMessage());
+		} catch (IOException e) {
+			log.error("Error d'E/S al persistir regles del relé {}.", idRele, e);
+			return new RestResponse<>(HttpStatus.INTERNAL_SERVER_ERROR, "Error al guardar fitxer de configuració");
+		}
+	}
+
+	/**
+	 * Actualitza la configuració general del relé (nom, durada cicles, consum, etc.).
+	 * 
+	 * @param idRele
+	 * @param dto
+	 * @return
+	 */
+	@PutMapping("/{id}/config")
+	public RestResponse<Rele> updateConfig(
+			@PathVariable("id") String idRele,
+			@RequestBody ReleConfigDto dto) {
+
+		log.info("REST - Update Config Rele with id={}.", idRele);
+		try {
+			Rele rele = relesSrv.updateConfig(idRele, dto);
+			return new RestResponse<>(rele, HttpStatus.OK);
+		} catch (ItemNotFoundException e) {
+			log.warn("Rele with id={} not found.", idRele);
+			return new RestResponse<>(HttpStatus.NOT_FOUND);
+		} catch (IllegalArgumentException e) {
+			log.warn("Dades invàlides en actualitzar config del relé {}: {}", idRele, e.getMessage());
+			return new RestResponse<>(HttpStatus.BAD_REQUEST, e.getMessage());
+		} catch (IOException e) {
+			log.error("Error d'E/S al persistir config del relé {}.", idRele, e);
+			return new RestResponse<>(HttpStatus.INTERNAL_SERVER_ERROR, "Error al guardar fitxer de configuració");
+		}
+	}
+
+	/**
+	 * Actualitza la configuració general del relé (àlies de /{id}/config).
+	 * 
+	 * @param idRele
+	 * @param dto
+	 * @return
+	 */
+	@PutMapping("/{id}")
+	public RestResponse<Rele> updateRele(
+			@PathVariable("id") String idRele,
+			@RequestBody ReleConfigDto dto) {
+		return this.updateConfig(idRele, dto);
+	}
 	
 	/**
 	 * 
@@ -334,6 +440,49 @@ public class RelesRestController {
 	}
 	
 	
+	/**
+	 * Habilita el relé perquè pugui funcionar amb normalitat.
+	 * 
+	 * @param idRele
+	 * @return
+	 */
+	@PutMapping("/{id}/enable")
+	public RestResponse<Rele> enable(@PathVariable("id") String idRele) {
+		log.info("REST - Enable Rele with id={}.", idRele);
+		try {
+			Rele rele = relesSrv.enableRele(idRele);
+			return new RestResponse<>(rele, HttpStatus.OK);
+		} catch (ItemNotFoundException e) {
+			log.warn("Rele with id={} not found.", idRele);
+			return new RestResponse<>(HttpStatus.NOT_FOUND);
+		} catch (IOException e) {
+			log.error("Error d'E/S en habilitar relé {}.", idRele, e);
+			return new RestResponse<>(HttpStatus.INTERNAL_SERVER_ERROR, "Error al guardar fitxer de configuració");
+		}
+	}
+
+	/**
+	 * Deshabilita el relé perquè NO es pugui activar sota cap circumstància.
+	 * Si estava en ON, s'apaga immediatament.
+	 * 
+	 * @param idRele
+	 * @return
+	 */
+	@PutMapping("/{id}/disable")
+	public RestResponse<Rele> disable(@PathVariable("id") String idRele) {
+		log.info("REST - Disable Rele with id={}.", idRele);
+		try {
+			Rele rele = relesSrv.disableRele(idRele);
+			return new RestResponse<>(rele, HttpStatus.OK);
+		} catch (ItemNotFoundException e) {
+			log.warn("Rele with id={} not found.", idRele);
+			return new RestResponse<>(HttpStatus.NOT_FOUND);
+		} catch (IOException e) {
+			log.error("Error d'E/S en deshabilitar relé {}.", idRele, e);
+			return new RestResponse<>(HttpStatus.INTERNAL_SERVER_ERROR, "Error al guardar fitxer de configuració");
+		}
+	}
+	
 	private RestResponse<Rele> setStateManual(String idRele, boolean isHigh) {
 		Rele rele;
 		try {
@@ -345,6 +494,10 @@ public class RelesRestController {
 		catch (ItemNotFoundException e) {
         	log.warn("Rele with id={} not found.", idRele);
             return new RestResponse<>(HttpStatus.NOT_FOUND);
+		}
+		catch (IllegalStateException e) {
+			log.warn("Operació [MANUAL] no permesa sobre el relé {}: {}", idRele, e.getMessage());
+			return new RestResponse<>(HttpStatus.CONFLICT, e.getMessage());
 		}
 	}		
 }

@@ -143,6 +143,10 @@ public class RuleReleEval {
 			return new ResultatEvalCondicions(false, "RULE_JA_ACTIVADA");
 		}
 
+		if(!rele.isEnabled()) { 
+			return new ResultatEvalCondicions(false, "RELE_DESHABILITAT");
+		}
+
 		if(ModeRele.MANUAL.equals(rele.getCopyStateRele().getMode())) { 
 			return new ResultatEvalCondicions(false, "RELE_MODE_MANUAL");
 		}

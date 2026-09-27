@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import com.pi4j.io.gpio.digital.DigitalOutput;
 
 import es.fdvcode.pipool.common.ParameterizedMessage;
+import es.fdvcode.pipool.model.rele.CalendarRele;
 import es.fdvcode.pipool.model.rele.FranjaHoraria;
 import es.fdvcode.pipool.model.rele.PersistibleRele;
 import es.fdvcode.pipool.model.rele.Rele;
@@ -22,6 +23,7 @@ import es.fdvcode.pipool.model.rele.StateRele;
 import es.fdvcode.pipool.model.rele.StateRele.CausaState;
 import es.fdvcode.pipool.model.rele.StateRele.ModeRele;
 import es.fdvcode.pipool.mqtt.homeassistant.PipoolEntitiesMqttSrv;
+import es.fdvcode.pipool.restsrv.v1.dto.ReleConfigDto;
 import es.fdvcode.pipool.srv.ItemNotFoundException;
 import lombok.RequiredArgsConstructor;
 
@@ -61,6 +63,9 @@ public class RelesSrv {
 		
 		for(Rele item : mapReles.values()) {
 			StateRele state = item.getCopyStateRele();
+			if (!item.isEnabled()) {
+				state.setOn(false);
+			}
 			
 			try {
 				DigitalOutput gpioPinOut = gpioController.provisionGpioPin(item.getGpioPin(), item.getNom(), state.isGpioPinHigh());
@@ -74,9 +79,9 @@ public class RelesSrv {
 				item.updateStateRele(state);
 				log.info("RELESRV - Init GPIOs -> S'ha inicialitzat el Pin GPIO:{} amb Nom:{}, isON:{} i GpioPinHigh:{}.", item.getGpioPin(), item.getNom(), state.isOn(), state.isGpioPinHigh());
 				
-				//Revisa si l'historic va acabar amb TEMP activat
+				//Revisa si l'historic va acabar amb TEMP activat (només si el relé està habilitat)
 				StateRele lastState = item.calcLastDesactivacioHistory();
-				if(lastState!=null &&  CausaState.OFF_SHUTDOWN.equals(lastState.getCausa())) {
+				if(item.isEnabled() && lastState!=null && CausaState.OFF_SHUTDOWN.equals(lastState.getCausa())) {
 					StateRele lastActiv = item.calcLastActivacioHistory();
 					if(lastActiv!=null &&  CausaState.ON_TEMP.equals(lastActiv.getCausa())) {
 						this.setOnTemporal(item, lastActiv.getActivacioTemporal());
@@ -103,6 +108,10 @@ public class RelesSrv {
 	}
 	
 	public StateRele setOnTemporal(Rele rele, FranjaHoraria franjaTemporal) {
+		if (!rele.isEnabled()) {
+			throw new IllegalStateException("El relé [" + rele.getId() + "] està DESHABILITAT i no es pot activar temporalment.");
+		}
+		
 		StateRele state = rele.getCopyStateRele();
 		
 		state.setActivacioTemporal(franjaTemporal);
@@ -212,6 +221,11 @@ public class RelesSrv {
 	}
 
 	public StateRele setOnMaster(Rele rele, Rele releMaster) {
+		if (!rele.isEnabled()) {
+			log.warn("RELESRV - SET ON RELEMASTER -> Rele={} està DESHABILITAT. No s'activa per ReleMaster={}.", rele.getId(), releMaster.getId());
+			return rele.getCopyStateRele();
+		}
+		
 		relesQuery.syncRele(rele);
 		
 		StateRele state = rele.getCopyStateRele();
@@ -264,6 +278,9 @@ public class RelesSrv {
 	 */
 	public Rele setStateManual(String idRele, boolean isOn) throws ItemNotFoundException {
 		Rele rele = relesQuery.getRele(idRele);
+		if (isOn && !rele.isEnabled()) {
+			throw new IllegalStateException("El relé [" + idRele + "] està DESHABILITAT i no es pot activar manualment.");
+		}
 		this.setStateManual(rele.getCopyStateRele(), isOn);
 
 		return rele;
@@ -292,9 +309,16 @@ public class RelesSrv {
 	}
 	
 	public StateRele setStateHA(StateRele state, boolean isOn, ModeRele modeRele) {
+		Rele rele = state.getRele();
+		if (isOn && rele != null && !rele.isEnabled()) {
+			log.warn("RELESRV SET STATE HA -> El relé [{}] està DESHABILITAT. No s'activa per HA.", rele.getId());
+			if (pipoolMqtt != null) {
+				pipoolMqtt.pubStateRele(state);
+			}
+			return state;
+		}
 		this.updateState(state, isOn, modeRele);
 		
-		Rele rele = state.getRele();
 		ParameterizedMessage msg = new ParameterizedMessage("RELESRV SET STATE HA -> S'ha establert el Rele={} amb Mode={}, EstatRele={} i EstatPin={}.", rele.getId(), state.getMode(), state.isOn(), state.isGpioPinHigh());
 		
 		//Aplica el canvi de estat:
@@ -415,6 +439,10 @@ public class RelesSrv {
 	 * @param isOn
 	 */
 	private StateRele updateState(StateRele state, boolean isOn, ModeRele mode) {
+		if (isOn && state.getRele() != null && !state.getRele().isEnabled()) {
+			throw new IllegalStateException("El relé [" + state.getRele().getId() + "] està DESHABILITAT i no es pot activar sota cap circumstància.");
+		}
+		
 		DigitalOutput  gpioPin = gpioController.getGpioPin(state.getRele().getGpioPin());
 		if(gpioPin==null) {
 			throw new RuntimeException("No s'ha pogut obtenir el GpioPin: " + state.getRele().getGpioPin());
@@ -476,5 +504,158 @@ public class RelesSrv {
 		}
 		
 		return null;
+	}
+
+	public Rele updateCalendars(String idRele, List<CalendarRele> calendars) throws ItemNotFoundException, IOException {
+		Rele rele = relesQuery.getRele(idRele);
+		if (calendars == null) {
+			throw new IllegalArgumentException("La llista de calendaris no pot ser null.");
+		}
+		
+		for (CalendarRele cal : calendars) {
+			if (cal.getDiaIni() < 1 || cal.getDiaIni() > 31 || cal.getDiaFin() < 1 || cal.getDiaFin() > 31) {
+				throw new IllegalArgumentException("Els dies de calendari han d'estar entre 1 i 31.");
+			}
+			if (cal.getMesIni() < 1 || cal.getMesIni() > 12 || cal.getMesFin() < 1 || cal.getMesFin() > 12) {
+				throw new IllegalArgumentException("Els mesos de calendari han d'estar entre 1 i 12.");
+			}
+			cal.setRele(rele);
+			
+			if (cal.getListFrangesHoraries() != null) {
+				for (FranjaHoraria fr : cal.getListFrangesHoraries()) {
+					if (fr.getHoraIni() < 0 || fr.getHoraIni() > 23) {
+						throw new IllegalArgumentException("L'hora inicial ha d'estar entre 0 i 23.");
+					}
+					if (fr.getMinutIni() < 0 || fr.getMinutIni() > 59) {
+						throw new IllegalArgumentException("El minut inicial ha d'estar entre 0 i 59.");
+					}
+					if (fr.getSecondIni() < 0 || fr.getSecondIni() > 59) {
+						throw new IllegalArgumentException("El segon inicial ha d'estar entre 0 i 59.");
+					}
+					if (fr.getDuracioSeconds() < 0) {
+						throw new IllegalArgumentException("La duració en segons no pot ser negativa.");
+					}
+				}
+			}
+		}
+		
+		rele.setCalendars(calendars);
+		relesLoader.writeJsonFile();
+		log.info("Calendaris del Rele [{}] actualitzats i persistits a JSON correctament.", idRele);
+		return rele;
+	}
+
+	public Rele updateRules(String idRele, List<RuleRele> rules) throws ItemNotFoundException, IOException {
+		Rele rele = relesQuery.getRele(idRele);
+		if (rules == null) {
+			throw new IllegalArgumentException("La llista de regles no pot ser null.");
+		}
+		rele.setRules(rules);
+		relesLoader.writeJsonFile();
+		log.info("Regles del Rele [{}] actualitzades i persistides a JSON correctament.", idRele);
+		return rele;
+	}
+
+	public Rele updateConfig(String idRele, ReleConfigDto dto) throws ItemNotFoundException, IOException {
+		Rele rele = relesQuery.getRele(idRele);
+		if (dto == null) {
+			throw new IllegalArgumentException("El payload de configuració no pot ser null.");
+		}
+		if (dto.getNom() != null && !dto.getNom().trim().isEmpty()) {
+			rele.setNom(dto.getNom().trim());
+		}
+		if (dto.getSecondsDuradaCicles() != null) {
+			if (dto.getSecondsDuradaCicles() < 1) {
+				throw new IllegalArgumentException("La durada dels cicles ha de ser com a mínim 1 segon.");
+			}
+			rele.setSecondsDuradaCicles(dto.getSecondsDuradaCicles());
+		}
+		if (dto.getConsumHora() != null) {
+			if (dto.getConsumHora() < 0) {
+				throw new IllegalArgumentException("El consum per hora no pot ser negatiu.");
+			}
+			rele.setConsumHora(dto.getConsumHora());
+		}
+		if (dto.getUnitatConsumHora() != null) {
+			rele.setUnitatConsumHora(dto.getUnitatConsumHora());
+		}
+		if (dto.getRulesOn() != null) {
+			rele.setRulesOn(dto.getRulesOn());
+		}
+		if (dto.getMasterOnObligatori() != null) {
+			rele.setMasterOnObligatori(dto.getMasterOnObligatori());
+		}
+		if (dto.getIdReleMaster() != null) {
+			rele.setIdReleMaster(dto.getIdReleMaster().trim().isEmpty() ? null : dto.getIdReleMaster().trim());
+		}
+		if (dto.getMqttEnabled() != null) {
+			rele.setMqttEnabled(dto.getMqttEnabled());
+		}
+		if (dto.getMqttConsumSensorEnabled() != null) {
+			rele.setMqttConsumSensorEnabled(dto.getMqttConsumSensorEnabled());
+		}
+		if (dto.getOrdre() != null) {
+			rele.setOrdre(dto.getOrdre());
+		}
+		if (dto.getEnabled() != null) {
+			rele.setEnabled(dto.getEnabled());
+			if (!dto.getEnabled()) {
+				StateRele state = rele.getCopyStateRele();
+				state.setActivacioTemporal(null);
+				state.setActivacioProgramada(null);
+				if (state.getActivacioRule() != null) {
+					state.getActivacioRule().desactivar();
+					state.setActivacioRule(null);
+				}
+				if (state.isOn()) {
+					this.setStateManual(state, false);
+				} else {
+					rele.updateStateRele(state);
+				}
+			}
+		}
+		
+		relesLoader.writeJsonFile();
+		log.info("Configuració del Rele [{}] actualitzada i persistida a JSON correctament.", idRele);
+		return rele;
+	}
+
+	public Rele enableRele(String idRele) throws ItemNotFoundException, IOException {
+		Rele rele = relesQuery.getRele(idRele);
+		rele.setEnabled(true);
+		relesLoader.writeJsonFile();
+		log.info("RELESRV - Relé [{}] HABILITAT correctament i persistit a JSON.", idRele);
+		if (pipoolMqtt != null) {
+			pipoolMqtt.pubConfigAll();
+			pipoolMqtt.pubStateRele(rele.getCopyStateRele());
+		}
+		return rele;
+	}
+
+	public Rele disableRele(String idRele) throws ItemNotFoundException, IOException {
+		Rele rele = relesQuery.getRele(idRele);
+		rele.setEnabled(false);
+		
+		StateRele state = rele.getCopyStateRele();
+		state.setActivacioTemporal(null);
+		state.setActivacioProgramada(null);
+		if (state.getActivacioRule() != null) {
+			state.getActivacioRule().desactivar();
+			state.setActivacioRule(null);
+		}
+		
+		if (state.isOn()) {
+			this.setStateManual(state, false);
+		} else {
+			rele.updateStateRele(state);
+		}
+		
+		relesLoader.writeJsonFile();
+		log.info("RELESRV - Relé [{}] DESHABILITAT correctament, forçat a OFF i persistit a JSON.", idRele);
+		if (pipoolMqtt != null) {
+			pipoolMqtt.pubConfigAll();
+			pipoolMqtt.pubStateRele(rele.getCopyStateRele());
+		}
+		return rele;
 	}
 }

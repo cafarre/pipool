@@ -11,6 +11,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -113,14 +118,32 @@ public class SondesLoader {
 	 * 
 	 * @throws IOException
 	 */
-	public void writeJsonFile() throws IOException {
+	public synchronized void writeJsonFile() throws IOException {
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.enable(SerializationFeature.INDENT_OUTPUT);
 
-		// Object to JSON in file
-		mapper.writeValue(new File(fileConfig), mapSondes.values());
+		File targetFile = new File(fileConfig);
+		File parentDir = targetFile.getParentFile();
+		if (parentDir != null && !parentDir.exists()) {
+			parentDir.mkdirs();
+		}
 
-		log.info("JSON de Sonda grabat OK.");
+		File tempFile = new File(targetFile.getAbsolutePath() + ".tmp");
+
+		synchronized (mapSondes) {
+			mapper.writeValue(tempFile, mapSondes.values());
+		}
+
+		Path tempPath = tempFile.toPath();
+		Path targetPath = targetFile.toPath();
+		try {
+			Files.move(tempPath, targetPath, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+		} catch (AtomicMoveNotSupportedException e) {
+			log.warn("ATOMIC_MOVE no suportat ({}), utilitzant reemplaçament estàndard.", e.getMessage());
+			Files.move(tempPath, targetPath, StandardCopyOption.REPLACE_EXISTING);
+		}
+
+		log.info("JSON de Sonda grabat OK de forma atòmica a: {}", fileConfig);
 	}
 
 }

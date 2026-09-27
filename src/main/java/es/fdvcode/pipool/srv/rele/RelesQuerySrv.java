@@ -51,7 +51,13 @@ public class RelesQuerySrv {
 	 * @param rele
 	 */
 	public void syncRele(Rele rele) {
+		if (gpioController == null) {
+			return;
+		}
 		DigitalOutput  gpioPin = gpioController.getGpioPin(rele.getGpioPin());
+		if (gpioPin == null) {
+			return;
+		}
 		
 		//Sincronitza estat rele amb gpio
 		StateRele state = rele.getCopyStateRele();

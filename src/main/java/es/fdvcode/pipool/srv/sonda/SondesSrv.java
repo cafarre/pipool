@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import es.fdvcode.pipool.model.sonda.Sonda;
 import es.fdvcode.pipool.model.sonda.Sonda.TipusSonda;
 import es.fdvcode.pipool.mqtt.homeassistant.PipoolEntitiesMqttSrv;
+import es.fdvcode.pipool.restsrv.v1.dto.SondaConfigDto;
 import es.fdvcode.pipool.srv.ItemNotFoundException;
 import es.fdvcode.pipool.srv.sonda.atlasi2c.SondaAtlasErrorException;
 import es.fdvcode.pipool.srv.sonda.atlasi2c.impl.FactorySondaAtlas;
@@ -38,6 +39,7 @@ public class SondesSrv {
 	final Environment env;
 
 	private final SondesQuerySrv sondesQuerySrv;
+	private final SondesLoader sondesLoader;
 	private final PipoolEntitiesMqttSrv pipoolMqtt;
 	
 	@Value("${pipool.reles.idReleBomba}")
@@ -152,4 +154,48 @@ public class SondesSrv {
             throw new IOException("No se pudo obtener la temperatura de la CPU.");
         }
     }
+
+	public Sonda updateConfig(String idSonda, SondaConfigDto dto) throws ItemNotFoundException, IOException {
+		Sonda sonda = sondesQuerySrv.getSonda(idSonda);
+		if (dto == null) {
+			throw new IllegalArgumentException("El payload de configuració no pot ser null.");
+		}
+		
+		Double min = dto.getMinValor() != null ? dto.getMinValor() : sonda.getMinValor();
+		Double max = dto.getMaxValor() != null ? dto.getMaxValor() : sonda.getMaxValor();
+		if (min != null && max != null && min > max) {
+			throw new IllegalArgumentException("minValor (" + min + ") no pot ser superior a maxValor (" + max + ").");
+		}
+		
+		if (dto.getNom() != null && !dto.getNom().trim().isEmpty()) {
+			sonda.setNom(dto.getNom().trim());
+		}
+		if (dto.getMinValor() != null) {
+			sonda.setMinValor(dto.getMinValor());
+		}
+		if (dto.getMaxValor() != null) {
+			sonda.setMaxValor(dto.getMaxValor());
+		}
+		if (dto.getIdReleCorrector() != null) {
+			sonda.setIdReleCorrector(dto.getIdReleCorrector().trim().isEmpty() ? null : dto.getIdReleCorrector().trim());
+		}
+		if (dto.getOrdre() != null) {
+			sonda.setOrdre(dto.getOrdre());
+		}
+		if (dto.getUnitats() != null) {
+			sonda.setUnitats(dto.getUnitats());
+		}
+		if (dto.getHaDeviceClass() != null) {
+			sonda.setHaDeviceClass(dto.getHaDeviceClass());
+		}
+		
+		sondesLoader.writeJsonFile();
+		log.info("Configuració de la Sonda [{}] actualitzada i persistida a JSON correctament.", idSonda);
+		return sonda;
+	}
+
+	public Sonda updateConfig(int address, SondaConfigDto dto) throws ItemNotFoundException, IOException {
+		Sonda sonda = sondesQuerySrv.getSonda(address);
+		return updateConfig(sonda.getId(), dto);
+	}
 }

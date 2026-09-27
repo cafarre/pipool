@@ -63,13 +63,22 @@ public class Sonda{
 	public String getNom() {
 		return nom;
 	}
+	public void setNom(String nom) {
+		this.nom = nom;
+	}
 
 	public String getUnitats() {
 		return unitats;
 	}
+	public void setUnitats(String unitats) {
+		this.unitats = unitats;
+	}
 	
 	public String getHaDeviceClass() {
 		return haDeviceClass;
+	}
+	public void setHaDeviceClass(String haDeviceClass) {
+		this.haDeviceClass = haDeviceClass;
 	}
 
 	public TipusSonda getTipusSonda() {
@@ -82,8 +91,15 @@ public class Sonda{
 	public int getOrdre() {
 		return ordre;
 	}	
+	public void setOrdre(int ordre) {
+		this.ordre = ordre;
+	}
+
 	public String getIdReleCorrector() {
 		return idReleCorrector;
+	}
+	public void setIdReleCorrector(String idReleCorrector) {
+		this.idReleCorrector = idReleCorrector;
 	}
 
 	public Double getMinValor() {
