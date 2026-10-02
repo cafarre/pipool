@@ -2,6 +2,7 @@ package es.fdvcode.pipool.srv.sonda;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -24,6 +26,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 
 import es.fdvcode.pipool.model.sonda.Sonda;
 import es.fdvcode.pipool.model.sonda.Sonda.TipusSonda;
+import es.fdvcode.pipool.model.sonda.StateSonda;
 import jakarta.annotation.PostConstruct;
 
 /**
@@ -40,6 +43,11 @@ public class SondesLoader {
 
 	@Value("${pipool.sondes.file}")
 	private String fileConfig;
+
+	private abstract static class SondaConfigFileMixIn {
+		@JsonIgnore
+		abstract StateSonda getStateSonda();
+	}
 
 	/**
 	 * constructor spring
@@ -60,26 +68,58 @@ public class SondesLoader {
 	}
 
 	/**
-	 * Default Map
+	 * Default Map: intenta carregar des del recurs /default-config/sondes.json
+	 * i si falla, construeix la configuració per defecte programàticament.
 	 */
 	public void initDefaultMap() {
-
 		log.info("Carreguem Sondes per defecte.");
 
-		Sonda sonda = new Sonda("sonda_orp", "Sonda ORP/Redox", TipusSonda.Atlas, "mV", "None", 98, 2, 0.0, 1000.0);
-		mapSondes.put(sonda.getId(), sonda);
+		try (InputStream is = getClass().getResourceAsStream("/default-config/sondes.json")) {
+			if (is != null) {
+				ObjectMapper mapper = new ObjectMapper();
+				TypeReference<List<Sonda>> mapType = new TypeReference<List<Sonda>>() {};
+				List<Sonda> list = mapper.readValue(is, mapType);
+				if (list != null && !list.isEmpty()) {
+					synchronized (mapSondes) {
+						this.mapSondes.clear();
+						for (Sonda sonda : list) {
+							mapSondes.put(sonda.getId(), sonda);
+						}
+					}
+					log.info("Sondes per defecte carregades correctament des de /default-config/sondes.json. Total: {}", mapSondes.size());
+					return;
+				}
+			}
+		} catch (Exception e) {
+			log.warn("No s'ha pogut carregar el recurs /default-config/sondes.json: {}", e.getMessage());
+		}
 
-		sonda = new Sonda("sonda_ph", "Sonda PH", TipusSonda.Atlas, "ph", "None", 99, 3, 0.0, 14.0);
-		mapSondes.put(sonda.getId(), sonda);
+		initDefaultProgrammaticMap();
+	}
 
-		sonda = new Sonda("sonda_temp", "Sonda TempºC", TipusSonda.Atlas, "ºC", "Temperature", 102, 1, 0.0, 60.0);
-		mapSondes.put(sonda.getId(), sonda);
+	public void initDefaultProgrammaticMap() {
+		synchronized (mapSondes) {
+			this.mapSondes.clear();
 
-		sonda = new Sonda("temp_cpu_rpi", "Temp CPU rPi ºC", TipusSonda.rPi, "ºC", "Temperature", 1, 4, 0.0, 100.0);
-		mapSondes.put(sonda.getId(), sonda);
+			Sonda sonda = new Sonda("sonda_temp", "Sonda Temp°C", TipusSonda.Atlas, "°C", "Temperature", 102, 1, 0.0, 60.0);
+			mapSondes.put(sonda.getId(), sonda);
 
-		sonda = new Sonda("temp_shelly_flood", "Temp Caseta", TipusSonda.rPi, "ºC", "Temperature", 5, 5, -20.0, 60.0);
-		mapSondes.put(sonda.getId(), sonda);
+			sonda = new Sonda("sonda_orp", "Sonda ORP/Redox", TipusSonda.Atlas, "mV", null, 98, 2, 0.0, 1000.0);
+			sonda.setIdReleCorrector("rele_bomba_clor");
+			mapSondes.put(sonda.getId(), sonda);
+
+			sonda = new Sonda("sonda_ph", "Sonda PH", TipusSonda.Atlas, "ph", null, 99, 3, 0.0, 14.0);
+			sonda.setIdReleCorrector("rele_bomba_acid");
+			mapSondes.put(sonda.getId(), sonda);
+
+			sonda = new Sonda("temp_cpu_rpi", "Temp CPU rPi °C", TipusSonda.rPi, "°C", "Temperature", 1, 4, 0.0, 100.0);
+			sonda.setIdReleCorrector("rele_fan");
+			mapSondes.put(sonda.getId(), sonda);
+
+			sonda = new Sonda("temp_shelly_flood", "Temp Caseta", TipusSonda.rPi, "°C", "Temperature", 5, 5, -20.0, 60.0);
+			mapSondes.put(sonda.getId(), sonda);
+		}
+		log.info("Sondes per defecte carregades programàticament. Total: {}", mapSondes.size());
 	}
 
 	public Map<String, Sonda> getSondes() {
@@ -121,6 +161,7 @@ public class SondesLoader {
 	public synchronized void writeJsonFile() throws IOException {
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.enable(SerializationFeature.INDENT_OUTPUT);
+		mapper.addMixIn(Sonda.class, SondaConfigFileMixIn.class);
 
 		File targetFile = new File(fileConfig);
 		File parentDir = targetFile.getParentFile();

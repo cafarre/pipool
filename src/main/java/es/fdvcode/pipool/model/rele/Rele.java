@@ -58,6 +58,7 @@ public class Rele{
 	@JsonIgnore
 	private List<StateRele> historic=Collections.synchronizedList(new ArrayList<>());
 
+	@JsonIgnore
 	private ResultatEvalCondicions ultimResultatEvalCondicions; 
 	
 	/**
@@ -349,6 +350,7 @@ public class Rele{
 		}
 	}
 	
+	@JsonIgnore
 	public int getSecondsActivatAvui() {
 		Calendar avui = Calendar.getInstance();
 		avui.set(Calendar.HOUR_OF_DAY, 0);
@@ -395,6 +397,7 @@ public class Rele{
 		return res;
 	}
 	
+	@JsonIgnore
 	public Double getConsumUltimaActivacio() {
 		StateRele state = this.getCopyStateRele();
 		if(state.isOn()) {
@@ -416,6 +419,7 @@ public class Rele{
 		}
 	}
 	
+	@JsonIgnore
 	public Double getConsumPendentConsolidar() {
 		StateRele state = this.getCopyStateRele();
 		if(state.isOn()) {
@@ -437,6 +441,7 @@ public class Rele{
 		}
 	}	
 	
+	@JsonIgnore
 	public Double getConsumTotalRele() {
 		Double consumHist = this.getConsumAcumulatHistoric(); 
 		Double consumAct = this.getConsumPendentConsolidar();
@@ -444,6 +449,7 @@ public class Rele{
 		return consumHist + consumAct;
 	}
 	
+	@JsonIgnore
 	public Double getConsumAvui() {
 		Calendar avui = Calendar.getInstance();
 		avui.set(Calendar.HOUR_OF_DAY, 0);
@@ -464,6 +470,7 @@ public class Rele{
 		return res;
 	}
 	
+	@JsonIgnore
 	public Double getConsumAcumulatHistoric() {
 		return calcConsumAcumulatHistoric(this.historic.size()-1);
 	}
@@ -527,10 +534,12 @@ public class Rele{
 		return "Rele: " + this.id;
 	}
 
+	@JsonIgnore
 	public ResultatEvalCondicions getUltimResultatEvalCondicions() {
 		return ultimResultatEvalCondicions;
 	}
 
+	@JsonIgnore
 	public void setUltimResultatEvalCondicions(ResultatEvalCondicions ultimResultatEvalCondicions) {
 		this.ultimResultatEvalCondicions = ultimResultatEvalCondicions;
 	}

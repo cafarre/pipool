@@ -12,6 +12,8 @@ public class ResultatEvalCondicions {
 	private String motiu;
 	private RuleCondicio condIncomplerta;
 	
+	public ResultatEvalCondicions() {}
+	
 	public ResultatEvalCondicions(boolean resultatOK, String motiu) {
 		this(resultatOK, motiu, null);
 	}

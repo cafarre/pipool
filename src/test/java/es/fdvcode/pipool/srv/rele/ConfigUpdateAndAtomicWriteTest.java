@@ -209,4 +209,86 @@ class ConfigUpdateAndAtomicWriteTest {
 		assertTrue(rele.isEnabled(), "El relé ha de tornar a estar habilitat");
 	}
 
+	@Test
+	void testNoRuntimeStatePersistedInJson() throws Exception {
+		File configFile = new File(tempFolder, "reles_clean_persistence_test.json");
+		RelesLoader loader = new RelesLoader();
+		Field fileConfigField = RelesLoader.class.getDeclaredField("fileConfig");
+		fileConfigField.setAccessible(true);
+		fileConfigField.set(loader, configFile.getAbsolutePath());
+		loader.initDefaultMap();
+
+		Rele releBomba = loader.getReles().get("rele_bomba");
+		assertNotNull(releBomba);
+		// Assignem valors en calent / runtime
+		releBomba.setUltimResultatEvalCondicions(new es.fdvcode.pipool.model.rele.ResultatEvalCondicions(false, "TEST_KO"));
+		if (releBomba.getRules() != null && !releBomba.getRules().isEmpty()) {
+			RuleRele rule = releBomba.getRules().get(0);
+			rule.activar();
+			if (rule.getCondicionsActivacio() != null && !rule.getCondicionsActivacio().isEmpty()) {
+				rule.getCondicionsActivacio().get(0).setValorDatoCondicio("999");
+				rule.getCondicionsActivacio().get(0).setCumpleCondicio(true);
+			}
+		}
+
+		// Persistim a fitxer
+		loader.writeJsonFile();
+
+		String jsonContent = Files.readString(configFile.toPath());
+
+		// Comprovem que cap propietat en calent no s'ha escrit al fitxer JSON
+		assertFalse(jsonContent.contains("ultimResultatEvalCondicions"), "No s'ha de persistir ultimResultatEvalCondicions");
+		assertFalse(jsonContent.contains("\"stateRele\""), "No s'ha de persistir stateRele");
+		assertFalse(jsonContent.contains("secondsActivatAvui"), "No s'ha de persistir secondsActivatAvui");
+		assertFalse(jsonContent.contains("consumUltimaActivacio"), "No s'ha de persistir consumUltimaActivacio");
+		assertFalse(jsonContent.contains("consumAvui"), "No s'ha de persistir consumAvui");
+		assertFalse(jsonContent.contains("consumTotalRele"), "No s'ha de persistir consumTotalRele");
+		assertFalse(jsonContent.contains("consumAcumulatHistoric"), "No s'ha de persistir consumAcumulatHistoric");
+		assertFalse(jsonContent.contains("consumPendentConsolidar"), "No s'ha de persistir consumPendentConsolidar");
+		assertFalse(jsonContent.contains("\"activada\""), "No s'ha de persistir activada de RuleRele");
+		assertFalse(jsonContent.contains("valorDatoCondicio"), "No s'ha de persistir valorDatoCondicio");
+		assertFalse(jsonContent.contains("cumpleCondicio"), "No s'ha de persistir cumpleCondicio");
+
+		// Comprovem que es pot llegir de nou sense cap problema
+		RelesLoader newLoader = new RelesLoader();
+		fileConfigField.set(newLoader, configFile.getAbsolutePath());
+		newLoader.loadJsonFile();
+		assertEquals(7, newLoader.getReles().size(), "S'han de carregar els 7 relés correctament");
+	}
+
+	@Test
+	void testInitDefaultMapMatchesFullConfiguration() throws Exception {
+		RelesLoader relesLoader = new RelesLoader();
+		relesLoader.initDefaultMap();
+		assertEquals(7, relesLoader.getReles().size(), "S'han de carregar els 7 relés per defecte");
+		assertTrue(relesLoader.getReles().containsKey("rele_bomba"));
+		assertTrue(relesLoader.getReles().containsKey("rele_lfi"));
+		assertTrue(relesLoader.getReles().containsKey("rele_fan"));
+		assertTrue(relesLoader.getReles().containsKey("rele_llums"));
+		assertTrue(relesLoader.getReles().containsKey("rele_llums_jardi"));
+		assertTrue(relesLoader.getReles().containsKey("rele_bomba_clor"));
+		assertTrue(relesLoader.getReles().containsKey("rele_bomba_acid"));
+
+		Rele bombaClor = relesLoader.getReles().get("rele_bomba_clor");
+		assertNotNull(bombaClor.getRules());
+		assertFalse(bombaClor.getRules().isEmpty(), "rele_bomba_clor ha de tenir regles configurades");
+
+		SondesLoader sondesLoader = new SondesLoader();
+		sondesLoader.initDefaultMap();
+		assertEquals(5, sondesLoader.getSondes().size(), "S'han de carregar les 5 sondes per defecte");
+		assertEquals("rele_bomba_clor", sondesLoader.getSondes().get("sonda_orp").getIdReleCorrector());
+		assertEquals("rele_bomba_acid", sondesLoader.getSondes().get("sonda_ph").getIdReleCorrector());
+		assertEquals("rele_fan", sondesLoader.getSondes().get("temp_cpu_rpi").getIdReleCorrector());
+	}
+
+	@Test
+	void testResultatEvalCondicionsDeserializeSafe() throws Exception {
+		com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+		String json = "{\"resultatOK\":false,\"motiu\":\"TEST_MOTIU\"}";
+		es.fdvcode.pipool.model.rele.ResultatEvalCondicions res = mapper.readValue(json, es.fdvcode.pipool.model.rele.ResultatEvalCondicions.class);
+		assertNotNull(res);
+		assertFalse(res.isResultatOK());
+		assertEquals("TEST_MOTIU", res.getMotiu());
+	}
+
 }
