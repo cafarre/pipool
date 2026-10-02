@@ -90,27 +90,39 @@ public abstract class Persister<P extends Persistible, O> {
 		}
 	}
 	
+	protected String getBasePath() {
+		return FILE_PERSIST_PATH;
+	}
+	
 	protected List<P> loadFromDisc(int numDies) {
 		List<P> result = new ArrayList<>();
-		
-		if(existAnyHistoryFile()) {
-			int i = 0;
-			while(i < 60 && numDies > 0) {
-				Calendar cal = Calendar.getInstance();
-				cal.add(Calendar.DAY_OF_MONTH, -i);
-				
-				String filename = getResolveFilename(cal.getTime());
-				File file = new File(filename);
-				if(file.exists()) {
-					List<P> list = loadFileFromDisc(file);
-					result.addAll(list);
-					numDies--;
-				}
-				
-				i++;
-			}
+		if (numDies <= 0) {
+			return result;
 		}
-
+		
+		File curDir = new File(getBasePath() + getEspecificPath());
+		if (!curDir.exists() || !curDir.isDirectory()) {
+			return result;
+		}
+		
+		File[] files = curDir.listFiles((dir, name) -> 
+			name.startsWith(getFilenamePrefix() + "_") && name.endsWith(FILE_PERSIST_EXTENSION)
+		);
+		
+		if (files == null || files.length == 0) {
+			return result;
+		}
+		
+		// Ordenem descendent per nom (en format <prefix>_yyyy-MM-dd.dat equival a ordre cronològic del més recent al més antic)
+		java.util.Arrays.sort(files, (f1, f2) -> f2.getName().compareTo(f1.getName()));
+		
+		int filesToLoad = Math.min(numDies, files.length);
+		// Carreguem els fitxers en ordre cronològic ascendent (dels més antics als més recents dels seleccionats)
+		for (int i = filesToLoad - 1; i >= 0; i--) {
+			List<P> list = loadFileFromDisc(files[i]);
+			result.addAll(list);
+		}
+		
 		return result;
 	}
 	
@@ -144,22 +156,17 @@ public abstract class Persister<P extends Persistible, O> {
 	}
 	
 	private String getResolveFilename(Date date) {
-		return FILE_PERSIST_PATH + getEspecificPath() + getFilenamePrefix() + "_" + sdf.format(date) + FILE_PERSIST_EXTENSION;
+		return getBasePath() + getEspecificPath() + getFilenamePrefix() + "_" + sdf.format(date) + FILE_PERSIST_EXTENSION;
 	}
 	
 	private boolean existAnyHistoryFile() {
-		File curDir = new File(FILE_PERSIST_PATH + getEspecificPath());
+		File curDir = new File(getBasePath() + getEspecificPath());
 		
 		if(curDir!=null && curDir.exists()) {
-			File[] files = curDir.listFiles();
-			if(files!=null) {
-				
-				for (File file: files) {
-					if(file.getName().contains(getFilenamePrefix() + "_") && file.getName().contains(FILE_PERSIST_EXTENSION)) {
-						return true;
-					}
-				}
-			}
+			File[] files = curDir.listFiles((dir, name) ->
+				name.startsWith(getFilenamePrefix() + "_") && name.endsWith(FILE_PERSIST_EXTENSION)
+			);
+			return files != null && files.length > 0;
 		}
 		return false;
 	}
