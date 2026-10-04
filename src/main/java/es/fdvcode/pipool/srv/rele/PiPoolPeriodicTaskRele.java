@@ -80,7 +80,7 @@ public final class PiPoolPeriodicTaskRele implements PiPoolPeriodicTask {
 						relesSrv.setOffMaster(rele, releMaster);
 					}
 					else if(state.teActivacionsActives() && stateMaster.isOn() && (state.isActivacioReleMaster() || rele.isMasterOnObligatori()) 
-							&& !state.getActivadorReleMaster().isActivada()) {
+							&& (state.getActivadorReleMaster() == null || !state.getActivadorReleMaster().isActivada())) {
 						log.info("SCHEDULER RELES - DESACTIVANT [OFF] el RELE: {} a causa de RELE MASTER:{} ja no esta activat per l'Activador del slave {}.", rele.getId(), releMaster.getId(), state.getActivadorReleMaster());
 						relesSrv.setOffMaster(rele, releMaster);
 					}

@@ -215,6 +215,7 @@ public class StateRele implements Cloneable {
 		return this.desactivacioReleMaster;
 	}
 	
+	@JsonIgnore
 	public ActivadorReles getActivadorReleMaster() {
 		return this.activadorReleMaster;
 	}

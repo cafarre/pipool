@@ -284,11 +284,27 @@ class ConfigUpdateAndAtomicWriteTest {
 	@Test
 	void testResultatEvalCondicionsDeserializeSafe() throws Exception {
 		com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-		String json = "{\"resultatOK\":false,\"motiu\":\"TEST_MOTIU\"}";
+		String json = "{\"resultatOK\":false,\"motiu\":\"TEST_MOTIU\",\"ruleActivada\":true,\"condicionsActivacio\":[]}";
 		es.fdvcode.pipool.model.rele.ResultatEvalCondicions res = mapper.readValue(json, es.fdvcode.pipool.model.rele.ResultatEvalCondicions.class);
 		assertNotNull(res);
 		assertFalse(res.isResultatOK());
 		assertEquals("TEST_MOTIU", res.getMotiu());
+		assertTrue(res.isRuleActivada());
+		assertNotNull(res.getCondicionsActivacio());
+	}
+
+	@Test
+	void testStateReleJsonIgnoreActivadorReleMaster() throws Exception {
+		RelesLoader loader = new RelesLoader();
+		loader.initDefaultMap();
+		Rele rele = loader.getReles().get("rele_bomba");
+		es.fdvcode.pipool.model.rele.StateRele state = rele.getCopyStateRele();
+		RuleRele rule = rele.getRules().get(0);
+		state.setActivadorReleMaster(rule);
+
+		com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+		String json = mapper.writeValueAsString(state);
+		assertFalse(json.contains("activadorReleMaster"), "StateRele serialized JSON must NOT contain activadorReleMaster to prevent Jackson issues in clients");
 	}
 
 }

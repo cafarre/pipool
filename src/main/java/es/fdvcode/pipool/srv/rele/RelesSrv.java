@@ -443,22 +443,25 @@ public class RelesSrv {
 			throw new IllegalStateException("El relé [" + state.getRele().getId() + "] està DESHABILITAT i no es pot activar sota cap circumstància.");
 		}
 		
-		DigitalOutput  gpioPin = gpioController.getGpioPin(state.getRele().getGpioPin());
-		if(gpioPin==null) {
-			throw new RuntimeException("No s'ha pogut obtenir el GpioPin: " + state.getRele().getGpioPin());
-		}
-		
 		state.setMode(mode);
 		state.setOn(isOn);
 		
-		gpioPin.setState(state.isGpioPinHigh());
-
-		//Sincronitza estat rele amb gpio
-		state.syncGpioPin(gpioPin.isHigh());
+		if (gpioController != null) {
+			DigitalOutput gpioPin = gpioController.getGpioPin(state.getRele().getGpioPin());
+			if(gpioPin==null) {
+				throw new RuntimeException("No s'ha pogut obtenir el GpioPin: " + state.getRele().getGpioPin());
+			}
+			gpioPin.setState(state.isGpioPinHigh());
+			state.syncGpioPin(gpioPin.isHigh());
+		} else {
+			state.syncGpioPin(state.isGpioPinHigh());
+		}
 		
 		log.info("RELESRV - UPDATESTATE -> S'ha establert l'estat del Rele={} amb Mode={}, EstatRele={} i EstatPin={}.", state.getRele().getId(), state.getMode(), state.isOn(), state.isGpioPinHigh());
 		
-		pipoolMqtt.pubStateRele(state);
+		if (pipoolMqtt != null) {
+			pipoolMqtt.pubStateRele(state);
+		}
 		
 		return state;
 	}
@@ -495,11 +498,31 @@ public class RelesSrv {
 	public ResultatEvalCondicions evalRule(String idRele, String idRule) throws ItemNotFoundException {
 		Rele rele = relesQuery.getRele(idRele);
 		
-		for (RuleRele rule : rele.getRules()) {
-			if(rule.getId().equals(idRule)) {
-				ResultatEvalCondicions result = ruleEval.evalCompleixCondicionsActivacio(rule, rele);
-				rele.setUltimResultatEvalCondicions(result);
-				return result;
+		if (rele.getRules() != null) {
+			for (RuleRele rule : rele.getRules()) {
+				if(rule.getId().equals(idRule)) {
+					ResultatEvalCondicions result = ruleEval.evalRuleOnDemand(rule, rele);
+					rele.setUltimResultatEvalCondicions(result);
+					return result;
+				}
+			}
+		}
+		
+		if (rele.getCalendars() != null) {
+			for (CalendarRele cal : rele.getCalendars()) {
+				if (cal.getListFrangesHoraries() != null) {
+					for (FranjaHoraria fr : cal.getListFrangesHoraries()) {
+						if (fr.getRules() != null) {
+							for (RuleRele rule : fr.getRules()) {
+								if (rule.getId().equals(idRule)) {
+									ResultatEvalCondicions result = ruleEval.evalRuleOnDemand(rule, rele);
+									rele.setUltimResultatEvalCondicions(result);
+									return result;
+								}
+							}
+						}
+					}
+				}
 			}
 		}
 		

@@ -185,6 +185,131 @@ public class RuleReleEval {
 	}
 	
 	/**
+	 * Avalua una regla sota demanda (per consultes d'usuari via REST, bot o Android).
+	 * Sempre avalua totes les condicions (activació i desactivació) per recollir els valors
+	 * actuals i no retorna KO pel sol fet que la regla ja estigui activada.
+	 * 
+	 * @param rule
+	 * @param rele
+	 * @return
+	 */
+	public ResultatEvalCondicions evalRuleOnDemand(RuleRele rule, Rele rele) {
+		if(rule.getCondicionsActivacio() == null) {
+			return new ResultatEvalCondicions(false, "SENSE_CONDICIONS");
+		}
+
+		// Avalua TOTES les condicions d'activació actuals per recollir els seus valors
+		RuleCondicio darreraCondicioIncomplerta = null;
+		boolean totesActivacioCompleixen = true;
+		for(RuleCondicio cond : rule.getCondicionsActivacio()) {
+			cond.setCumpleCondicio(isCompleixRuleCondicio(cond, rule, rele));
+			if(!cond.isCumpleCondicio()) {
+				darreraCondicioIncomplerta = cond;
+				totesActivacioCompleixen = false;
+			}
+		}
+
+		// Avalua condicions de desactivació si n'hi ha
+		RuleCondicio condDesactivacioCompleix = null;
+		if(rule.getCondicionsDesactivacio() != null) {
+			for(RuleCondicio cond : rule.getCondicionsDesactivacio()) {
+				cond.setCumpleCondicio(isCompleixRuleCondicio(cond, rule, rele));
+				if(cond.isCumpleCondicio() && condDesactivacioCompleix == null) {
+					condDesactivacioCompleix = cond;
+				}
+			}
+		}
+
+		// Cas 1: La regla està actualment ACTIVADA
+		if(rule.isActivada()) {
+			StringBuilder sb = new StringBuilder();
+			if(condDesactivacioCompleix != null) {
+				sb.append("La regla està actualment ACTIVADA. Es compleix condició de parada: ")
+				  .append(condDesactivacioCompleix.getDato()).append(" (")
+				  .append(condDesactivacioCompleix.getValorDatoCondicio()).append(" ")
+				  .append(condDesactivacioCompleix.getOperand()).append(" ")
+				  .append(condDesactivacioCompleix.getValor()).append(").\n\n");
+			} else {
+				sb.append("La regla està actualment ACTIVADA i en curs.\n\n");
+			}
+			if(rule.getCondicionsActivacio() != null && !rule.getCondicionsActivacio().isEmpty()) {
+				sb.append("Condicions d'activació:\n");
+				for(RuleCondicio cond : rule.getCondicionsActivacio()) {
+					sb.append(" • ").append(cond.getDato()).append(" ")
+					  .append(cond.getOperand()).append(" ").append(cond.getValor())
+					  .append(" (actual: ").append(cond.getValorDatoCondicio()).append(")")
+					  .append(cond.isCumpleCondicio() ? " [COMPLEIX]" : " [NO COMPLEIX]")
+					  .append("\n");
+				}
+			}
+			if(rule.getCondicionsDesactivacio() != null && !rule.getCondicionsDesactivacio().isEmpty()) {
+				sb.append("\nCondicions de desactivació:\n");
+				for(RuleCondicio cond : rule.getCondicionsDesactivacio()) {
+					sb.append(" • ").append(cond.getDato()).append(" ")
+					  .append(cond.getOperand()).append(" ").append(cond.getValor())
+					  .append(" (actual: ").append(cond.getValorDatoCondicio()).append(")")
+					  .append(cond.isCumpleCondicio() ? " [COMPLEIX -> PENDENT ATURADA]" : " [NO COMPLEIX]")
+					  .append("\n");
+				}
+			}
+			ResultatEvalCondicions res = new ResultatEvalCondicions(true, sb.toString().trim());
+			res.setRuleActivada(true);
+			res.setCondicionsActivacio(rule.getCondicionsActivacio());
+			res.setCondicionsDesactivacio(rule.getCondicionsDesactivacio());
+			return res;
+		}
+
+		// Cas 2: El relé està deshabilitat
+		if(!rele.isEnabled()) {
+			ResultatEvalCondicions res = new ResultatEvalCondicions(false, "RELE_DESHABILITAT");
+			res.setCondicionsActivacio(rule.getCondicionsActivacio());
+			res.setCondicionsDesactivacio(rule.getCondicionsDesactivacio());
+			return res;
+		}
+
+		// Cas 3: El relé està en mode manual
+		if(ModeRele.MANUAL.equals(rele.getCopyStateRele().getMode())) {
+			ResultatEvalCondicions res = new ResultatEvalCondicions(false, "RELE_MODE_MANUAL");
+			res.setCondicionsActivacio(rule.getCondicionsActivacio());
+			res.setCondicionsDesactivacio(rule.getCondicionsDesactivacio());
+			return res;
+		}
+
+		// Cas 4: Alguna condició d'activació no es compleix
+		if(darreraCondicioIncomplerta != null) {
+			ResultatEvalCondicions res = new ResultatEvalCondicions(false, "CONDICIO_KO", darreraCondicioIncomplerta);
+			res.setCondicionsActivacio(rule.getCondicionsActivacio());
+			res.setCondicionsDesactivacio(rule.getCondicionsDesactivacio());
+			return res;
+		}
+
+		// Cas 5: Delay mínim entre activacions
+		Date lastDt = rule.getDtAturada(); 
+		if(lastDt == null) {
+			StateRele last = rele.calcLastActivacioHistory();
+			if(last != null) {
+				lastDt = last.getTimestamp();
+			}
+		}
+		
+		if(lastDt != null) {
+			int diff = (int)(new Date().getTime() - lastDt.getTime()) / 1000;
+			if(diff < rule.getSegonsFinsProximaActivacio()) {
+				ResultatEvalCondicions res = new ResultatEvalCondicions(false, "DELAY_ENTRE_ACTIVACIONS: " + rule.getSegonsFinsProximaActivacio());
+				res.setCondicionsActivacio(rule.getCondicionsActivacio());
+				res.setCondicionsDesactivacio(rule.getCondicionsDesactivacio());
+				return res;
+			}
+		}
+
+		// Cas 6: Totes les condicions d'activació es compleixen
+		ResultatEvalCondicions res = new ResultatEvalCondicions(true, "OK");
+		res.setCondicionsActivacio(rule.getCondicionsActivacio());
+		res.setCondicionsDesactivacio(rule.getCondicionsDesactivacio());
+		return res;
+	}
+	
+	/**
 	 * Evalua si la RuleRele compleix ALGUNA de les condicions de desactivacio.
 	 * 
 	 * @param rule
